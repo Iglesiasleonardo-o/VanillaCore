@@ -115,11 +115,5 @@ This project is licensed under the MIT License.
 If you have questions, want to collaborate, or are interested in custom engineering solutions, you can reach me here:
 
 * **GitHub:** [@Iglesiasleonardo-o](https://github.com/Iglesiasleonardo-o)
-* **Email:** [Your Professional Email]
-* **LinkedIn:** ## 📬 Contact
-If you have questions, want to collaborate, or are interested in custom 
-engineering solutions, you can reach me here:
-
-* **GitHub:** [@Iglesiasleonardo-o](https://github.com/Iglesiasleonardo-o)
 * **Email:** iglesiasleonardo@outlook.com
 * **LinkedIn:** https://www.linkedin.com/in/iglesiasleonardo/
