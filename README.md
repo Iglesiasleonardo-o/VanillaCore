@@ -2,9 +2,22 @@
 
 A zero-dependency architecture for high-performance SPAs. VanillaCore proves that modern ES6+ features and a logic-centric pattern make bloated frameworks obsolete. No build tools, no npm-fatigue, just pure, documentable JavaScript.
 
-## Why SPAs Today?
+## Sandbox & Implementation
+To see the architecture in action, including the Node.js server implementation:
 
-The modern web allows us to deliver full application experiences directly to a mobile device or desktop. By using a Single Page Application (SPA) architecture, you essentially download the entire logic of the app once. Combined with browser caching, the application becomes resilient and lightning-fast, providing a native-app feel without the "Abstraction Tax" of modern frameworks.
+1. **Clone:** `git clone https://github.com/Iglesiasleonardo-o/VanillaCore.git`
+2. **Install:** `npm install` (Only for the Node.js server example).
+3. **Run:** `npm start`
+
+> **Note:** The core architecture itself requires zero dependencies; the sandbox is provided for full-stack demonstration.
+
+## Performance at a Glance
+| Feature | VanillaCore | Standard Frameworks |
+| :--- | :--- | :--- |
+| **Dependencies** | 0 | 1,000+ |
+| **Build Step** | None | Webpack/Vite/Babel |
+| **Bundle Size** | 5kB | 500KB - 2MB+ |
+| **Security** | XSS-Safe Objects | String-based / Virtual DOM |
 
 ## The Manifesto: The Framework-Free Web
 
@@ -17,11 +30,11 @@ The modern web allows us to deliver full application experiences directly to a m
 
 VanillaCore follows a reactive, human-readable cycle. We avoid **"Fat Managers"** by ensuring each layer has a single responsibility:
 
-1. **Logic (L):** The "Brain." Home of the **Veritas** (Data State).
+1. **Logic (L):** The "Brain." Home of the **Data State**.
    * **data-state.js:** The local source of truth (the data that usually needs to be sent to the database).
    * **math.js:** Pure business calculations.
    * **network.js:** API communication and data fetching.
-2. **Events (E):** The "Senses." Slim listeners that trigger Logic and manage the **Momentum** (View State)—temporary UI data like spinners, search queries, or toggles.
+2. **Events (E):** The "Senses." Slim listeners that trigger Logic and manage the **View State**, temporary UI data like spinners, search queries, or toggles.
 3. **ViewGen (V):** The "Factory." Pure functions that construct UI elements as 100% safe DOM nodes.
 4. **Render (R):** The "Diplomat." It is "dumb" and state-free. It speaks to the DOM, placing what ViewGen built exactly where it belongs.
 
@@ -63,8 +76,8 @@ This structure keeps architectural logic separate from business routes, ensuring
 ├── /quotations             # Feature Module (URL: /quotation)
 │   ├── /_parts             # Internal Arch: Events, Logic, Render, ViewGen
 │   │   ├── quotations.js   # The Signpost: Joins the sequence
-│   │   ├── /events         # Slim listeners & Momentum (View State)
-│   │   ├── /logic          # The Brain (Veritas)
+│   │   ├── /events         # Slim listeners & View State
+│   │   ├── /logic          # The Brain
 │   │   │   ├── data-state.js # Persistent Data (The Truth)
 │   │   │   ├── math.js     # Pure business logic
 │   │   │   └── network.js  # API/Fetch calls
@@ -76,13 +89,12 @@ This structure keeps architectural logic separate from business routes, ensuring
 └── app.js                  # The Engine
 ```
 
-## Evolution: Real-World Example
+## Proven in Production
+Originally developed to meet Mozambican business realities (handling local taxes like IVA and MZN currency), the logic is universal and scalable worldwide.
 
-This project includes a **Quotation & Inventory System** as the primary example of this architecture in action. Initially developed to meet **Mozambican business realities** (handling local taxes like IVA and MZN currency), the logic is universal and scalable worldwide.
-
-* **Dynamic Inventory:** Real-time search and stock validation handled in `logic/network.js`.
-* **Complex Calculations:** Line-item totals and tax processing in `logic/math.js`.
-* **Veritas Sync:** How `data-state.js` ensures the business truth is preserved separately from the UI "Momentum."
+* **Dynamic Inventory:** Real-time search and stock validation.
+* **Complex Calculations:** Line-item totals and tax processing in pure JS.
+* **Veritas Sync:** Distinguishes between Persistent Data and Temporary View State.
 
 As your business grows, you simply add new modules. The architecture is designed to scale from a simple quote tool to a full ERP without changing the core DNA.
 
@@ -91,8 +103,8 @@ As your business grows, you simply add new modules. The architecture is designed
 ## Dealing with Complexity
 To avoid **"Fat Managers,"** we distinguish between what the business needs and what the browser needs:
 
-1.  **Veritas (Data State):** Persistent business data that usually needs to be sent to the database (e.g., the items array). It lives in `data-state.js`.
-2.  **Momentum (View State):** Temporary visual info (e.g., `isLoading`, `_debounceTimer`). It lives in **Events** because it is disposable and only matters for the current interaction.
+1.  **Data State:** Persistent business data that usually needs to be sent to the database (e.g., the items array). It lives in `data-state.js`.
+2.  **View State:** Temporary visual info (e.g., `isLoading`, `_debounceTimer`). It lives in **Events** because it is disposable and only matters for the current interaction.
 
 
 
