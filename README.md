@@ -9,6 +9,7 @@ The modern web allows us to deliver full application experiences directly to a m
 ## The Manifesto: The Framework-Free Web
 
 * **Performance Over Bloat:** We prioritize execution speed. A 500KB Vanilla project can serve millions of users more efficiently than a 5MB framework bundle.
+* **Low Cognitive Load:** The "Signpost" structure ensures that even with 100+ modules, the mental map remains flat and navigable.
 * **Contextual Isolation:** Logic is rarely shared permanently. Each view owns its behaviors to avoid the "Tangled Web" of global dependencies.
 * **Signpost Naming:** No more searching through ten folders for one feature. Everything is grouped in "Parts" (e.g., `quotations.js` lives inside the `/quotations` folder).
 
@@ -53,7 +54,7 @@ The Resulting DOM (The Output)
 ```
 
 ## Directory Structure
-To avoid collisions with URL routes named "parts", internal architectural folders are prefixed with an underscore `(_parts).`
+This structure keeps architectural logic separate from business routes, ensuring that even as the project grows to hundreds of modules, the *Cognitive Load* remains near zero. To avoid collisions with URL routes named "parts", internal architectural folders are prefixed with an underscore `(_parts).`
 
 ```
 /src
@@ -74,6 +75,7 @@ To avoid collisions with URL routes named "parts", internal architectural folder
 ├── router.js               # The Map
 └── app.js                  # The Engine
 ```
+
 ## Evolution: Real-World Example
 
 This project includes a **Quotation & Inventory System** as the primary example of this architecture in action. Initially developed to meet **Mozambican business realities** (handling local taxes like IVA and MZN currency), the logic is universal and scalable worldwide.
@@ -87,8 +89,6 @@ As your business grows, you simply add new modules. The architecture is designed
 
 
 ## Dealing with Complexity
-
-### Veritas vs. Momentum
 To avoid **"Fat Managers,"** we distinguish between what the business needs and what the browser needs:
 
 1.  **Veritas (Data State):** Persistent business data that usually needs to be sent to the database (e.g., the items array). It lives in `data-state.js`.
