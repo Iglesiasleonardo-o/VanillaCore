@@ -1,0 +1,32 @@
+{
+  "name": "vanilla-core",
+  "version": "1.0.0",
+  "description": "The minimalist core for modern web engineering. No dependencies, no overhead—just fast, native JavaScript.",
+  "keywords": [
+    "vanilla",
+    "spa",
+    "architecture",
+    "framework",
+    "performance",
+    "native-js"
+  ],
+  "homepage": "https://github.com/Iglesiasleonardo-o/VanillaCore#readme",
+  "bugs": {
+    "url": "https://github.com/Iglesiasleonardo-o/VanillaCore/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Iglesiasleonardo-o/VanillaCore.git"
+  },
+  "license": "MIT",
+  "author": "Iglesias Leonardo <iglesias@inovitek.com>",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "mongodb": "^7.1.0"
+  }
+}
