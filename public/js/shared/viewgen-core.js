@@ -6,4 +6,4 @@ tags.forEach(tag => {
     HTMLElements[tag] = (attributes) => Component(tag, attributes);
 });
 
-export const { div, span, button, h1 } = HTMLElements;
+export const { div, span, button, h1, h2, h3, table, tr, td } = HTMLElements;
