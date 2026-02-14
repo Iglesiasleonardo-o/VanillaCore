@@ -12,12 +12,14 @@ To see the architecture in action, including the Node.js server implementation:
 > **Note:** The core architecture itself requires zero dependencies; the sandbox is provided for full-stack demonstration.
 
 ## Performance at a Glance
-| Feature | VanillaCore | Standard Frameworks |
+| Feature | VanillaCore Standard | Standard Frameworks |
 | :--- | :--- | :--- |
 | **Dependencies** | 0 | 1,000+ |
-| **Build Step** | None | Webpack/Vite/Babel |
-| **Bundle Size** | 5kB | 500KB - 2MB+ |
-| **Security** | XSS-Safe Objects | String-based / Virtual DOM |
+| **Core Implementation** | ~5kB - 10kB | 150kB - 500kB+ |
+| **50-Route Scale** | < 500kB Total | 5MB - 10MB+ |
+| **Build/Compile Time** | 0s (Native Refresh) | 2s - 30s+ (Wait for Build) |
+| **Rendering Strategy** | Direct DOM | Virtual DOM (Heavy Reconciliation) |
+| **Memory Management** | Auto-GC (DOM Level 0) | Manual Hooks/Cleanup Required |
 
 ## The Manifesto: The Framework-Free Web
 
@@ -27,7 +29,6 @@ To see the architecture in action, including the Node.js server implementation:
 * **Signpost Naming:** No more searching through ten folders for one feature. Everything is grouped in "Parts" (e.g., `quotations.js` lives inside the `/quotations` folder).
 
 ## The Core Lifecycle
-
 VanillaCore follows a reactive, human-readable cycle. We avoid **"Fat Managers"** by ensuring each layer has a single responsibility:
 
 1. **Logic (L):** The "Brain." Home of the **Data State**.
@@ -40,9 +41,15 @@ VanillaCore follows a reactive, human-readable cycle. We avoid **"Fat Managers"*
 
 [Image of a software architecture diagram showing the separation of persistent data state and transient view state within a reactive loop]
 
-## The Component Architecture
+## Mechanical Sympathy: The Engine
+By aligning with how browsers actually work, we eliminate the middleman.
 
-In `shared/components.js`, we define the DNA of the app. By using a nested Append structure, we build complex interfaces that look like HTML but are real DOM nodes:
+* **The "No-Diff" Advantage:** We eliminate CPU-heavy "Reconciliation." State changes trigger Direct DOM Mutations.
+* **Automatic Garbage Collection:** By utilizing DOM Level 0 event properties, the browser automatically purges handlers when elements are removed. No "Zombie Listeners" or manual cleanup required.
+* **Zero Abstraction Tax:** You write the code the browser executes. No transpilors, no source maps, just instant execution.
+
+## ViewGenCore: The Mechanical Sympathy Engine
+In `shared/components.js`, we utilize the ViewGenCore pattern to build complex interfaces using a nested `.Append()` structure. These are *real DOM nodes*, not strings, ensuring maximum performance and native security.
 
 ```javascript
 div({id:"container"}).Append(
@@ -55,7 +62,7 @@ div({id:"container"}).Append(
 )
 ```
 The Resulting DOM (The Output)
-```
+```html
 <div id="container">
   <div class="row">
     <div class="cell">
