@@ -1,0 +1,41 @@
+/* npx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --watch */
+
+@import "tailwindcss";
+
+/* Fonte Inter */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+/* Ocultar scrollbar do modal */
+#clientModalPanel::-webkit-scrollbar {
+    display: none;
+}
+
+#clientModalPanel {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Garante que o tooltip não pisque */
+.sidebar-tooltip {
+    pointer-events: none;
+}
+
+/* Animação para mostrar/ocultar campo de Posição */
+.field-container {
+    transition: all 0.3s ease-in-out;
+    overflow: hidden;
+    max-height: 200px;
+    /* Altura suficiente para o campo */
+    opacity: 1;
+}
+
+.field-container.hidden {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    /* Remove margem quando oculto */
+}
