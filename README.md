@@ -2,9 +2,12 @@
 
 A zero-dependency architecture for high-performance SPAs. VanillaCore proves that modern ES6+ features and a logic-centric pattern make bloated frameworks obsolete. No build tools, no npm-fatigue, just pure, documentable JavaScript.
 
-## Sandbox & Implementation
-To see the architecture in action, including the Node.js server implementation:
+## Getting Started: No Install Required
+The **VanillaCore** architecture requires **no installation**. You can explore the core logic, documentation, and implementation examples directly by browsing the repository's public routes:
+* **Core Logic:** Check `public/js/shared/README.md` for the ViewGenCore documentation, including how it functions and various usage examples.
+* **Real-World Implementation:** See `public/js/quotations/quotation/parts/items/viewgen.js` to see a practical application of the ViewGenCore in action.
 
+If you wish to see the full-stack demonstration including the Node.js server environment, we've included a NodeJs server:
 1. **Clone:** `git clone https://github.com/Iglesiasleonardo-o/VanillaCore.git`
 2. **Install:** `npm install` (Only for the Node.js server example).
 3. **Run:** `npm start`
@@ -49,7 +52,7 @@ By aligning with how browsers actually work, we eliminate the middleman.
 * **Zero Abstraction Tax:** You write the code the browser executes. No transpilors, no source maps, just instant execution.
 
 ## ViewGenCore: The Mechanical Sympathy Engine
-In `shared/components.js`, we utilize the ViewGenCore pattern to build complex interfaces using a nested `.Append()` structure. These are *real DOM nodes*, not strings, ensuring maximum performance and native security.
+In `shared/viewgencore.js`, we utilize the ViewGenCore pattern to build complex interfaces using a nested `.Append()` structure. These are *real DOM nodes*, not strings, ensuring maximum performance and native security.
 
 ```javascript
 div({id:"container"}).Append(
@@ -61,7 +64,7 @@ div({id:"container"}).Append(
   )
 )
 ```
-The Resulting DOM (The Output)
+The Resulting DOM (Native Output)
 ```html
 <div id="container">
   <div class="row">
