@@ -6,8 +6,14 @@ export function renderInitialView() {
 }
 
 export function RenderView(viewElement) {
-    const container = document.getElementById('mainContainer');
-
+    const container = document.getElementById('main-wrapper');
     container.textContent = '';
     container.appendChild(viewElement);
+    updateLucideIcons(); // not sure if its always needed
+}
+
+export function updateLucideIcons() {
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
 }
