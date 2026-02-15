@@ -5,9 +5,12 @@
 
 @import "tailwindcss";
 
-
 body {
     font-family: 'Inter', sans-serif;
+}
+
+button {
+    cursor: pointer;
 }
 
 /* Ocultar scrollbar do modal */

@@ -60,11 +60,13 @@ function buildEntryHTML(data) {
 
 <body>
     <div id="session">${data}</div>
+    
     <div id="vanilla-loader">
         <div class="spinner"></div>
         <div class="text">Loading VanillaCore</div>
     </div>
     
+    <script>const $ = (elementId) => document.getElementById(elementId);</script>
     <script type="module" src="/public/js/vanilla-core/vanilla-events.js"></script>
 </body>
 `

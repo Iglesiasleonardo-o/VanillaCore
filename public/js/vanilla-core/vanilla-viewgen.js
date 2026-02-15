@@ -1,12 +1,12 @@
 // Here lives the html core elements
 // The sidebar, the header, the footer, the main content
 
-import { button, div, nav, RichElement, span } from '../shared/viewgencore.js';
+import { a, div, nav, RichElement, span } from '../shared/viewgencore.js';
 
 export function createMainView(user) {
     return div({ id: "body-wrapper", className: "bg-gray-100 flex" }).Append(
         createSidebar(user),
-        div({ id: "main-wrapper", className: "flex-1 ml-20" })
+        div({ id: "main-wrapper", className: "flex-1 ml-20 h-screen overflow-y-auto" })
     );
 }
 
@@ -22,19 +22,20 @@ function createSidebar() {
             RichElement("i", { className: "w-8 h-8", dataset: { lucide: "blocks" } })
         ),
         div({ className: "flex flex-col space-y-3 pt-6" }).Append(
-            createNavItem("clipboard-list", "Cotações", "text-blue-400", "cotacoes"),
+            createNavItem("clipboard-list", "Cotações", "text-white bg-blue-600 shadow-lg", "quotations"),
             createNavItem("shopping-cart", "Ponto de Venda", "text-green-400", "pos"),
-            createNavItem("package", "Produtos", "text-blue-400", "produtos"),
-            createNavItem("warehouse", "Inventário", "text-yellow-400", "inventario"),
-            createNavItem("users", "Clientes", "text-white bg-blue-600 shadow-lg", "clientes"),
-            createNavItem("user-cog", "Utilizadores", "text-red-400", "usuarios")
+            createNavItem("package", "Produtos", "text-blue-400", "products"),
+            createNavItem("warehouse", "Inventário", "text-yellow-400", "inventory"),
+            createNavItem("users", "Clientes", "text-blue-400", "customers"),
+            createNavItem("user-cog", "Utilizadores", "text-red-400", "users")
         )
     );
 }
 
 // Função auxiliar para não repetir código de botões
 function createNavItem(iconName, label, colors, route) {
-    return button({
+    return a({
+        href: route,
         className: `group relative flex items-center justify-center p-3 rounded-lg transition-colors hover:bg-gray-800 ${colors}`,
         // onclick: () => Router.go(route)
     }).Append(

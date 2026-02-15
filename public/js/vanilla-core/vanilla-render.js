@@ -6,7 +6,7 @@ export function renderInitialView() {
 }
 
 export function RenderView(viewElement) {
-    const container = document.getElementById('main-wrapper');
+    const container = $('main-wrapper');
     container.textContent = '';
     container.appendChild(viewElement);
     updateLucideIcons(); // not sure if its always needed
