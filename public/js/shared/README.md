@@ -2,8 +2,6 @@
 
 A minimalist, zero-dependency UI generator designed for **massive scale and tiny bundles**. No Virtual DOM, no reconciliation overhead, and zero "framework tax." 
 
-**Build 50-route applications that load in under 500KB.**
-
 ---
 
 ## The Philosophy: Mechanical Sympathy
@@ -33,7 +31,7 @@ In **ViewGenCore**, we don't write "Components", we write **View Generators**.
 ### Standard UI Generation
 Events like `onclick` are passed directly as parameters. This keeps your view logic pure and allows the browser to handle memory cleanup automatically.
 
-```
+```javascript
 import { div, h1, p, button } from './viewgencore.js';
 
 /**
@@ -55,7 +53,7 @@ export const createDashboardView = (onButtonClick) => {
 # High-Density Data Views
 For large-scale applications, use specialized generators for repeating elements to maintain a low memory ceiling and high frame rates.
 
-```
+```javascript
 import { tr, td, button } from './viewgencore.js';
 
 export const createUserRowView = (user, onDelete) => {
