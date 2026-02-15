@@ -1,17 +1,15 @@
-import express from 'express';
-import { MongoClient } from 'mongodb';
+import { createServer } from 'http'; // Changed from 'https'
+import './vanilla-core/mongo.js'; //init mongo here 
+// import './redis.js'; //if fast auth is needed
+import app from './vanilla-core/app.js';
 
-const app = express();
-const port = 3000;
+// No serverOptions needed for HTTP
+const server = createServer(app);
 
-// Example Connection String (You'll need a real one from MongoDB Atlas later)
-const url = 'mongodb://localhost:27017';
-const client = new MongoClient(url);
+// Standard HTTP port is 80, or 3000 for local dev
+const PORT = 80; 
+const HOST = "localhost"; 
 
-app.get('/', (req, res) => {
-    res.send('VanillaCore API is online with Express and MongoDB!');
-});
-
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+server.listen(PORT, HOST, () => {
+    console.log(`Server running at http://${HOST}:${PORT}/`);
 });

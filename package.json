@@ -28,5 +28,9 @@
   "dependencies": {
     "express": "^5.2.1",
     "mongodb": "^7.1.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.18",
+    "tailwindcss": "^4.1.18"
   }
 }
