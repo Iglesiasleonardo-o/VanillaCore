@@ -4,15 +4,19 @@ import {
     table, thead, tbody, tr, th, td, RichElement
 } from "../../shared/viewgencore.js";
 
-export function createQuotationView(quotationId) {
+export function createQuotationView(
+    quotationId,
+    executePrint, handleSaveClick, handleOptionsClick,
+    handlePaymentTermsUpdate, updatePrintText
+) {
     return div({ id: "app", className: "md:px-8 md:pb-8" }).Append(
-        createMainHeader(quotationId),
-        createA4Page(quotationId),
-        createPrintFAB()
+        createMainHeader(quotationId, executePrint, handleSaveClick, handleOptionsClick),
+        createA4Page(quotationId, handlePaymentTermsUpdate, updatePrintText),
+        createPrintFAB(executePrint)
     );
 }
 
-function createMainHeader(quotationId) {
+function createMainHeader(quotationId, executePrint, handleSaveClick, handleOptionsClick) {
     return header({
         id: "mainHeader",
         className: "sticky top-0 bg-gray-100 border-gray-200 z-30 pt-4 md:pt-8 pb-6 flex flex-col md:flex-row items-center justify-between gap-4 border-b border-gray-200"
@@ -36,14 +40,16 @@ function createMainHeader(quotationId) {
             div({ className: "flex items-center gap-3" }).Append(
                 button({
                     id: "printButton",
-                    className: "no-print flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition duration-200"
+                    className: "no-print flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition duration-200",
+                    onclick: executePrint
                 }).Append(
                     RichElement("i", { dataset: { lucide: "printer" }, className: "w-5 h-5" }),
                     span({ textContent: "Imprimir" })
                 ),
                 button({
                     id: "saveQuoteButton",
-                    className: "no-print flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition duration-200"
+                    className: "no-print flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition duration-200",
+                    onclick: handleSaveClick
                 }).Append(
                     RichElement("i", { dataset: { lucide: "save" }, className: "w-5 h-5" }),
                     span({ id: "saveButtonText", textContent: "Guardar" })
@@ -51,7 +57,8 @@ function createMainHeader(quotationId) {
                 div({ className: "relative no-print" }).Append(
                     button({
                         id: "optionsMenuButton",
-                        className: "p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-200"
+                        className: "p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-200",
+                        onclick: handleOptionsClick
                     }).Append(
                         RichElement("i", { dataset: { lucide: "more-vertical" }, className: "w-5 h-5" })
                     ),
@@ -75,7 +82,7 @@ function createMainHeader(quotationId) {
     );
 }
 
-function createA4Page(quotationId) {
+function createA4Page(quotationId, handlePaymentTermsUpdate, updatePrintText) {
     return div({
         id: "a4Page",
         className: "mt-10 w-[210mm] min-h-[297mm] bg-white rounded-lg shadow-lg mx-auto p-12 border border-gray-200 border-t"
@@ -84,7 +91,7 @@ function createA4Page(quotationId) {
         createCustomerAndTitleSection(quotationId),
         createProductManagerButton(),
         createItemsTable(),
-        createDocumentFooter()
+        createDocumentFooter(handlePaymentTermsUpdate, updatePrintText)
     );
 }
 
@@ -215,7 +222,29 @@ function createItemsTable() {
     );
 }
 
-function createDocumentFooter() {
+function createDocumentFooter(handlePaymentTermsUpdate, updatePrintText) {
+    const paymentTermsPrint = span({
+        id: "paymentTermsPrintValue", className: "print-only hidden",
+        textContent: "Pronto Pagamento"
+    });
+
+    const otherTermsInput = input({
+        type: "text", id: "paymentTermsOther", className: "hidden mt-1 block w-full max-w-xs text-sm border border-gray-300 rounded-md py-1.5 px-2", placeholder: "Especificar termos...",
+        oninput: e => updatePrintText(paymentTermsPrint, e)
+    });
+
+    const paymentTerms = select({
+        id: "paymentTerms", className: "block w-full max-w-xs text-sm border border-gray-300 rounded-md shadow-sm py-1.5 px-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500",
+        onchange: e => handlePaymentTermsUpdate(e, otherTermsInput, paymentTermsPrint)
+    });
+
+    const generalConditionsPrint = div({ id: "generalConditionsExtraPrint", className: "text-xs text-gray-600 mt-2 print-pre-line print-only hidden" });
+
+    const generalConditionsTextArea = textarea({
+        id: "generalConditionsExtra", rows: "3", className: "block w-full text-xs border border-gray-300 rounded-md shadow-sm py-1.5 px-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "Acrescente aqui outras condições...",
+        oninput: e => updatePrintText(generalConditionsPrint, e)
+    });
+
     return footer({ className: "pt-4 border-t border-gray-200" }).Append(
         div({ className: "flex justify-between items-start gap-8" }).Append(
             // General Conditions
@@ -236,9 +265,9 @@ function createDocumentFooter() {
                 ),
                 div({ className: "mt-2 no-print" }).Append(
                     RichElement("label", { for: "generalConditionsExtra", className: "block text-xs font-medium text-gray-600 mb-1", textContent: "Condições Adicionais" }),
-                    textarea({ id: "generalConditionsExtra", rows: "3", className: "block w-full text-xs border border-gray-300 rounded-md shadow-sm py-1.5 px-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "Acrescente aqui outras condições..." })
+                    generalConditionsTextArea
                 ),
-                div({ id: "generalConditionsExtraPrint", className: "text-xs text-gray-600 mt-2 print-pre-line print-only hidden" })
+                generalConditionsPrint
             ),
             // Totals
             div({ className: "w-1/2 max-w-xs text-sm" }).Append(
@@ -274,18 +303,18 @@ function createDocumentFooter() {
             div({ className: "mb-2" }).Append(
                 div({ className: "mb-3 no-print" }).Append(
                     RichElement("label", { for: "paymentTerms", className: "block text-sm font-medium text-gray-700 mb-1", textContent: "Termos de Pagamento" }),
-                    select({ id: "paymentTerms", className: "block w-full max-w-xs text-sm border border-gray-300 rounded-md shadow-sm py-1.5 px-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500" }).Append(
+                    paymentTerms.Append(
                         option({ value: "Pronto Pagamento", selected: true, textContent: "Pronto Pagamento" }),
                         option({ value: "15 Dias", textContent: "15 Dias" }),
                         option({ value: "30 Dias", textContent: "30 Dias" }),
                         option({ value: "outro", textContent: "Outro (especificar)" })
                     ),
-                    input({ type: "text", id: "paymentTermsOther", className: "hidden mt-1 block w-full max-w-xs text-sm border border-gray-300 rounded-md py-1.5 px-2", placeholder: "Especificar termos..." })
+                    otherTermsInput
                 ),
                 div({ id: "paymentTermsPrint", className: "text-xs text-gray-600 space-y-1" }).Append(
                     p().Append(
                         RichElement("strong", { textContent: "Termos de Pagamento: " }),
-                        span({ id: "paymentTermsPrintValue", className: "print-only hidden" })
+                        paymentTermsPrint
                     )
                 )
             ),
@@ -305,9 +334,7 @@ function createDocumentFooter() {
     );
 }
 
-// quotation-viewgen.js
-
-function createPrintFAB() {
+function createPrintFAB(executePrint) {
     return div({
         id: "fabPrintButtonWrapper",
         className: "group no-print fixed bottom-6 right-6 z-40"
@@ -315,7 +342,8 @@ function createPrintFAB() {
         // The Main Button
         button({
             id: "fabPrintButton",
-            className: "w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 transition-transform duration-200 hover:scale-105"
+            className: "w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 transition-transform duration-200 hover:scale-105",
+            onclick: executePrint
         }).Append(
             RichElement("i", {
                 dataset: { lucide: "printer" },

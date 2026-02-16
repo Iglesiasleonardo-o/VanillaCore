@@ -6,13 +6,13 @@ import { a, div, nav, RichElement, span } from '../shared/viewgencore.js';
 export function createMainView(user) {
     return div({ id: "body-wrapper", className: "bg-gray-100 flex" }).Append(
         createSidebar(user),
-        div({ id: "main-wrapper", className: "flex-1 ml-20 h-screen overflow-y-auto" })
+        div({ id: "main-wrapper", className: "ml-20 print:ml-0 flex-1 h-screen overflow-y-auto" })
     );
 }
 
 function createSidebar() {
     return nav({
-        className: "fixed top-0 left-0 h-screen w-20 bg-gray-900 text-white flex flex-col items-center py-6 z-40"
+        className: "fixed top-0 left-0 h-screen w-20 bg-gray-900 text-white flex flex-col items-center py-6 space-y-4 z-40 no-print"
     }).Append(
         // LOGO
         div({
