@@ -1,15 +1,13 @@
 // pterms-events.js
+import { company } from '../../../../database.js';
 import { updateElementText } from '../../../../shared/render.js';
-import { company } from '../database.js';
 import {
     addAccountId,
     filterAccounts,
-    removeAccountId,
-    shouldInputTermManually
+    removeAccountId
 } from './pterms-logic.js';
 import {
-    renderAccountsModalLists, renderAccountsPrintArea,
-    showAndRenderPrint
+    renderAccountsModalLists, renderAccountsPrintArea
 } from './pterms-render.js';
 
 let selectedAccountIds = [];
@@ -39,13 +37,6 @@ function triggerInitialRender() {
     const { selected } = filterAccounts(company.bankAccounts, selectedAccountIds);
     renderAccountsPrintArea(printContainer, selected);
 }
-
-// --- Termos de Pagamento ---
-export const handlePaymentTermsUpdate = (e, otherInput, printEl) => {
-    const selectedTerm = e.target.value;
-    const manualInputTerms = shouldInputTermManually(selectedTerm);
-    showAndRenderPrint(manualInputTerms, printEl, selectedTerm, otherInput);
-};
 
 // --- Gestão de Contas Bancárias ---
 // --- Gestão de Contas Bancárias (Otimizado) ---

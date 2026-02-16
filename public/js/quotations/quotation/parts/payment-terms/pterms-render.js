@@ -1,22 +1,7 @@
 // pterms-render.js
-import { updateElementText } from '../../../../shared/render.js';
 import { createAccountListItem, createAccountPrintCard, createEmptyState } from './pterms-viewgen.js';
 
-// --- Termos e Condições ---
-export function showAndRenderPrint(manualInputTerms, printEl, selectedTerm, otherTermsInput) {
-    if (manualInputTerms) {
-        otherTermsInput.classList.remove('hidden');
-        otherTermsInput.focus();
-        otherTermsInput.select();
-        updateElementText(printEl, otherTermsInput.value);
-    } else {
-        otherTermsInput.classList.add('hidden');
-        updateElementText(printEl, selectedTerm);
-    }
-}
-
 // --- Contas Bancárias (Modal) ---
-
 export function renderAccountsModalLists(selectedListContainer, availableListContainer, selectedAccounts, availableAccounts, onRemove, onAdd) {
     // Limpar containers
     selectedListContainer.textContent = '';
