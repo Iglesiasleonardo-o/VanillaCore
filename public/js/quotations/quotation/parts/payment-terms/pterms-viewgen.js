@@ -2,10 +2,11 @@
 
 import {
     div, header, footer, h2, h3,
-    button, span, RichElement
+    button, span, RichElement,
+    p
 } from "../../../../shared/viewgencore.js";
 
-export function createPaymentMethodModal() {
+export function createPaymentMethodModal(selectedList, availableList) {
     const paymentMethodModal = div({
         id: "paymentMethodModal",
         className: "fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50 no-print",
@@ -21,7 +22,7 @@ export function createPaymentMethodModal() {
             className: "modal-panel bg-white w-full max-w-4xl h-full max-h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden"
         }).Append(
             createModalHeader(paymentMethodModal),
-            createModalBody(),
+            createModalBody(selectedList, availableList),
             createModalFooter(paymentMethodModal)
         )
     );
@@ -45,23 +46,34 @@ function createModalHeader(paymentMethodModal) {
     );
 }
 
-function createModalBody() {
+function createModalBody(selectedAccountsView, availableAccountsView) {
     return div({
         className: "flex-grow p-6 overflow-y-auto grid grid-cols-2 gap-6"
     }).Append(
-        createMethodListColumn("Contas Selecionadas", "selectedMethodsList"),
-        createMethodListColumn("Contas Disponíveis", "availableMethodsList")
+        div({ className: "flex flex-col" }).Append(
+            h3({ className: "text-lg font-semibold text-gray-800 mb-3", textContent: "Contas Selecionadas" }),
+            selectedAccountsView
+        ),
+        div({ className: "flex flex-col" }).Append(
+            h3({ className: "text-lg font-semibold text-gray-800 mb-3", textContent: "Contas Disponíveis" }),
+            availableAccountsView
+        )
     );
 }
 
-function createMethodListColumn(title, listId) {
-    return div({ className: "flex flex-col" }).Append(
-        h3({ className: "text-lg font-semibold text-gray-800 mb-3", textContent: title }),
-        div({
-            id: listId,
-            className: "flex-grow p-4 bg-gray-50 rounded-lg border border-gray-200 divide-y divide-gray-200 overflow-y-auto"
-        })
-    );
+export function createSelectedAccountsListColumn() {
+    return createMethodListColumn("selectedMethodsList");
+}
+
+export function createAvailableAccountsListColumn() {
+    return createMethodListColumn("availableMethodsList");
+}
+
+function createMethodListColumn(listId) {
+    return div({
+        id: listId,
+        className: "flex-grow p-4 bg-gray-50 rounded-lg border border-gray-200 divide-y divide-gray-200 overflow-y-auto"
+    })
 }
 
 function createModalFooter(paymentMethodModal) {
@@ -78,37 +90,39 @@ function createModalFooter(paymentMethodModal) {
     );
 }
 
-/**
- * Creates an interactive list item for the bank account selection modal.
- */
-export function createAccountListItem(account, isSelected, callback) {
-    const detailsText = `Titular: ${account.accountHolder}\nBanco: ${account.bank}\nConta: ${account.accountNumber}\nNIB: ${account.nib || 'N/A'}\nSWIFT: ${account.swift || 'N/A'}`;
+// Função auxiliar interna para os detalhes (mantém o padrão DRY sem expor lógica complexa)
+function getAccountDetails(account) {
+    return `Titular: ${account.accountHolder}\nBanco: ${account.bank}\nConta: ${account.accountNumber}\nNIB: ${account.nib || 'N/A'}\nSWIFT: ${account.swift || 'N/A'}`;
+}
 
+/** Item para a coluna de Selecionados (Botão de remover) */
+export function createSelectedAccountItem(account, callback) {
     return RichElement("li", {
-        className: isSelected
-            ? 'flex justify-between items-start p-3 bg-blue-50 border border-blue-200 rounded cursor-pointer hover:bg-red-50 hover:border-red-300 group transition-colors mb-2'
-            : 'flex justify-between items-start p-3 bg-white border border-gray-200 rounded cursor-pointer hover:bg-green-50 hover:border-green-300 transition-colors mb-2',
+        className: 'flex justify-between items-start p-3 bg-blue-50 border border-blue-200 rounded cursor-pointer hover:bg-red-50 hover:border-red-300 group transition-colors mb-2',
         onclick: () => callback(account.id)
     }).Append(
-        // --- Left Column: Text ---
         div({ className: 'flex-1 pr-2' }).Append(
-            div({
-                className: 'font-bold text-gray-700 text-sm mb-1',
-                textContent: `${account.bank} (${account.currency})`
-            }),
-            div({
-                className: 'text-xs text-gray-500 whitespace-pre-line leading-relaxed',
-                textContent: detailsText
-            })
+            div({ className: 'font-bold text-gray-700 text-sm mb-1', textContent: `${account.bank} (${account.currency})` }),
+            div({ className: 'text-xs text-gray-500 whitespace-pre-line leading-relaxed', textContent: getAccountDetails(account) })
         ),
-        // --- Right Column: Icon ---
         div({ className: 'flex flex-col justify-center h-full pt-1' }).Append(
-            span({
-                className: isSelected
-                    ? 'text-gray-400 font-bold text-lg group-hover:text-red-500 transition-colors'
-                    : 'text-green-600 font-bold text-xl group-hover:scale-110 transition-transform',
-                textContent: isSelected ? '✕' : '+'
-            })
+            span({ className: 'text-gray-400 font-bold text-lg group-hover:text-red-500 transition-colors', textContent: '✕' })
+        )
+    );
+}
+
+/** Item para a coluna de Disponíveis (Botão de adicionar) */
+export function createAvailableAccountItem(account, callback) {
+    return RichElement("li", {
+        className: 'flex justify-between items-start p-3 bg-white border border-gray-200 rounded cursor-pointer hover:bg-green-50 hover:border-green-300 transition-colors mb-2',
+        onclick: () => callback(account.id)
+    }).Append(
+        div({ className: 'flex-1 pr-2' }).Append(
+            div({ className: 'font-bold text-gray-700 text-sm mb-1', textContent: `${account.bank} (${account.currency})` }),
+            div({ className: 'text-xs text-gray-500 whitespace-pre-line leading-relaxed', textContent: getAccountDetails(account) })
+        ),
+        div({ className: 'flex flex-col justify-center h-full pt-1' }).Append(
+            span({ className: 'text-green-600 font-bold text-xl hover:scale-110 transition-transform', textContent: '+' })
         )
     );
 }

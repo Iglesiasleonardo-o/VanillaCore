@@ -1,5 +1,30 @@
 // pterms-render.js
-import { createAccountListItem, createAccountPrintCard, createEmptyState } from './pterms-viewgen.js';
+import { processBanks } from './logic/math.js';
+import { createAccountPrintCard, createAvailableAccountItem, createEmptyState, createSelectedAccountItem } from './pterms-viewgen.js';
+
+export function renderPaymentTerms(
+    selectedList, availableList, printEl, noPaymentMsg,
+    globalBanks, quotationBanks,
+    callback
+) {
+    const handleSelected = (account) => {
+        noPaymentMsg.classList.add("hidden");
+        selectedList.appendChild(createSelectedAccountItem(account, callback));
+        printEl.appendChild(createAccountPrintCard(account));
+    };
+
+    const handleAvailable = (account) => {
+        availableList.appendChild(createAvailableAccountItem(account, callback));
+    };
+
+    // Execução da lógica pura passando funções como argumentos
+    processBanks(
+        globalBanks,
+        quotationBanks,
+        handleSelected,
+        handleAvailable
+    );
+}
 
 // --- Contas Bancárias (Modal) ---
 export function renderAccountsModalLists(selectedListContainer, availableListContainer, selectedAccounts, availableAccounts, onRemove, onAdd) {

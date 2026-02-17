@@ -1,5 +1,5 @@
 // pterms-events.js
-import { company } from '../../../../database.js';
+import { company } from '../../../database.js';
 import { updateElementText } from '../../../../shared/render.js';
 import {
     addAccountId,
@@ -16,19 +16,19 @@ export function getSelectedAccountIds() { return selectedAccountIds; }
 
 export function initPaymentEvents() {
     // Inicializar Estado
-    if (company.bankAccounts) {
-        selectedAccountIds = company.bankAccounts
-            .filter(acc => acc.id === 1 || acc.id === 2)
-            .map(acc => acc.id);
+    // if (company.bankAccounts) {
+    //     selectedAccountIds = company.bankAccounts
+    //         .filter(acc => acc.id === 1 || acc.id === 2)
+    //         .map(acc => acc.id);
 
-        if (selectedAccountIds.length === 0 && company.bankAccounts.length > 0) {
-            selectedAccountIds = company.bankAccounts.map(a => a.id);
-        }
-    }
+    //     if (selectedAccountIds.length === 0 && company.bankAccounts.length > 0) {
+    //         selectedAccountIds = company.bankAccounts.map(a => a.id);
+    //     }
+    // }
     
     // Passamos o renderizador de contas como callback para ser chamado quando o estado mudar
-    setupBankAccountsEvents();
-    triggerInitialRender();
+    // setupBankAccountsEvents();
+    // triggerInitialRender();
 }
 
 function triggerInitialRender() {

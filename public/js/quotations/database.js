@@ -5,7 +5,20 @@ export const quotations = [
         issue_date: "2026-02-17",
         expiry_date: "2026-03-19",
         metadata: { seller: "Cristiana Razaque", expiry_days: 30 },
-        issuer: { name: "Inovitek, Lda", address: "Rua da Mocargo, Talhão 2A, Parcela 728, Fomento", city: "Matola", province: "Maputo Província", zip_code: "1102", country: "Moçambique", nuit: "401956298", logo_url: "https://storage.cdn.com/logos/inovitek.png" },
+        issuer: {
+            name: "Inovitek, Lda", address: "Rua da Mocargo, Talhão 2A, Parcela 728, Fomento", city: "Matola", province: "Maputo Província", zip_code: "1102", country: "Moçambique", nuit: "401956298", logo_url: "https://storage.cdn.com/logos/inovitek.png",
+            bankAccounts: [
+                {
+                    id: 1,
+                    bank: "Millenium BIM",
+                    currency: "MZN",
+                    accountHolder: "INOVITEK LDA",
+                    accountNumber: "1243184787",
+                    nib: "000300000012431847870",
+                    swift: "BIMOMZMXXXX"
+                }
+            ]
+        },
         customer: { id: 1, name: "Mozal S.A.", address: "Beluluane Industrial Park", city: "Maputo", nuit: "400012345" },
         items: [{ ref: "CUDY-GS105D", name: "Cudy 5 Port Gigabit Switch", quantity: 5, unit_price: 15.90, tax_rate: 16, total_line: 92.22 }],
         totals: { subtotal: 79.50, tax_total: 12.72, grand_total: 92.22, currency: "MZN" },
@@ -17,7 +30,10 @@ export const quotations = [
         issue_date: "2026-02-17",
         expiry_date: "2026-03-19",
         metadata: { seller: "Cristiana Razaque", expiry_days: 30 },
-        issuer: { name: "Inovitek, Lda", address: "Rua da Mocargo, Talhão 2A, Parcela 728, Fomento", city: "Matola", province: "Maputo Província", zip_code: "1102", country: "Moçambique", nuit: "401956298", logo_url: "https://storage.cdn.com/logos/inovitek.png" },
+        issuer: {
+            name: "Inovitek, Lda", address: "Rua da Mocargo, Talhão 2A, Parcela 728, Fomento", city: "Matola", province: "Maputo Província", zip_code: "1102", country: "Moçambique", nuit: "401956298", logo_url: "https://storage.cdn.com/logos/inovitek.png",
+            bankAccounts: []
+        },
         customer: { id: 2, name: "Cornelder de Moçambique", address: "Porto da Beira", city: "Beira", nuit: "400098765" },
         items: [{ ref: "UBNT-U6-LITE", name: "Ubiquiti UniFi 6 Lite", quantity: 2, unit_price: 110.00, tax_rate: 16, total_line: 255.20 }],
         totals: { subtotal: 220.00, tax_total: 35.20, grand_total: 255.20, currency: "MZN" },

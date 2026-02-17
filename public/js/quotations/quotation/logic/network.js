@@ -1,4 +1,4 @@
-import { quotations } from "../../../database.js";
+import { quotations } from "../../database.js";
 
 export function fetchQuotation(quotationId) {
     return new Promise((resolve, reject) => {

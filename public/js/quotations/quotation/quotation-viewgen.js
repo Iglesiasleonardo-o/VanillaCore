@@ -5,13 +5,16 @@ import {
 } from "../../shared/viewgencore.js";
 
 // MAIN ENTRY POINT
-export function createQuotationView(quotation, paymentMethodModal, handleSaveClick, handleOptionsClick) {
+export function createQuotationView(quotation,
+    paymentMethodModal, paymentMethodsPrint, noPaymentMethod,
+    handleSaveClick, handleOptionsClick
+) {
     const { number: quotationNumber } = quotation;
-    
+
     return div({ id: "app", className: "md:px-8 md:pb-8" }).Append(
         div({ id: "quotation-data-wrapper" }).Append(
             createNavigationHeader(quotationNumber, handleSaveClick, handleOptionsClick),
-            createA4Sheet(quotationNumber, paymentMethodModal),
+            createA4Sheet(quotationNumber, paymentMethodModal, paymentMethodsPrint, noPaymentMethod),
             createPrintFAB(),
             paymentMethodModal
         )
@@ -156,7 +159,7 @@ function createOptionsDropdown(handleOptionsClick) {
 }
 
 // 2. A4 DOCUMENT STRUCTURE
-function createA4Sheet(quotationNumber, paymentMethodModal) {
+function createA4Sheet(quotationNumber, paymentMethodModal, paymentMethodsPrint, noPaymentMethod) {
     return div({
         id: "a4Page",
         className: "mt-10 w-[210mm] min-h-[297mm] bg-white rounded-lg shadow-lg mx-auto p-12 border border-gray-200 border-t"
@@ -165,7 +168,7 @@ function createA4Sheet(quotationNumber, paymentMethodModal) {
         createCustomerAndTitleSection(quotationNumber),
         createProductManagerButton(),
         createItemsTable(),
-        createDocumentFooter(paymentMethodModal)
+        createDocumentFooter(paymentMethodModal, paymentMethodsPrint, noPaymentMethod)
     );
 }
 
@@ -312,13 +315,13 @@ function createItemsTable() {
 
 // 6. DOCUMENT FOOTER (Conditions, Totals, Payments)
 
-function createDocumentFooter(paymentMethodModal) {
+function createDocumentFooter(paymentMethodModal, paymentMethodsPrint, noPaymentMethod) {
     return footer({ className: "pt-4 border-t border-gray-200" }).Append(
         div({ className: "flex justify-between items-start gap-8" }).Append(
             createConditionsColumn(), // Left side: Warranty, Notes
             createTotalsColumn()      // Right side: Math, Discounts
         ),
-        createPaymentDetailsSection(paymentMethodModal) // Bottom: Terms, Bank Accounts
+        createPaymentDetailsSection(paymentMethodModal, paymentMethodsPrint, noPaymentMethod) // Bottom: Terms, Bank Accounts
     );
 }
 
@@ -400,7 +403,7 @@ function createTotalRow(label, valueId, valueClass) {
 }
 
 // --- Footer Sub-Component: Payment Details (Bottom) ---
-function createPaymentDetailsSection(paymentMethodModal) {
+function createPaymentDetailsSection(paymentMethodModal, paymentMethodsPrint, noPaymentMethod) {
     return div({ className: "mt-8 pt-8 border-t border-gray-200" }).Append(
         h4({ className: "font-bold text-gray-800 mb-1", textContent: "Métodos de Pagamento" }),
         createPaymentTermsControls(),
@@ -414,10 +417,19 @@ function createPaymentDetailsSection(paymentMethodModal) {
                 span({ textContent: "Gerir Contas Bancárias" })
             )
         ),
-        div({ id: "paymentMethodsPrint", className: "grid grid-cols-2 gap-x-8 gap-y-4 text-xs text-gray-600" }).Append(
-            p({ id: "noPaymentMethod", className: "col-span-2 text-gray-400", textContent: "Nenhuma conta bancária selecionada." })
+        paymentMethodsPrint.Append(
+            noPaymentMethod
         )
     );
+}
+
+// Funções puras para criar as referências
+export function createPrintContainer() {
+    return div({ id: "paymentMethodsPrint", className: "grid grid-cols-2 gap-x-8 gap-y-4 text-xs text-gray-600" });
+}
+
+export function createNoPaymentMessage() {
+    return p({ id: "noPaymentMethod", className: "col-span-2 text-gray-400", textContent: "Nenhuma conta bancária selecionada." });
 }
 
 function createPaymentTermsControls() {
@@ -486,3 +498,4 @@ function createPrintFAB() {
         })
     );
 }
+

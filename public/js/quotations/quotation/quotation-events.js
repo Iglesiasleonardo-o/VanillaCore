@@ -1,49 +1,24 @@
-import { RenderView } from "../../vanilla-core/vanilla-render.js";
+import { globalState } from "../../vanilla-core/vanilla-global-state.js";
 import { quotation, setQuotation } from "./logic/data-state.js";
 import { fetchQuotation } from "./logic/network.js";
-import { createPaymentMethodModal } from "./parts/payment-terms/pterms-viewgen.js";
-import { handleOptionsClick, handleSaveClick } from "./parts/toolbar/toolbar-events.js";
-import { createLoadingState, createQuotationNotFound, createQuotationView } from "./quotation-viewgen.js";
+import { renderErrorState, renderSuccessState, showLoadingState } from "./quotation-render.js";
 
 // TODO
-// TERMINAR O RESTO DAS PARTES: bank accounts, customer, inventory
+// TERMINAR O RESTO DAS PARTES: 
+// 1. bank accounts, comparar entre global data state e o que está na cotação 
+// 2. customer, 
+// 3. inventory
 // MAKE SURE quotation data is being set correctly
 
-// --- Métodos de Apoio ---
-function renderSuccessState() {
-    const paymentMethodModal = createPaymentMethodModal();
-    const quotationView = createQuotationView(
-        quotation,
-        paymentMethodModal,
-        handleSaveClick,
-        handleOptionsClick,
-    );
-    RenderView(quotationView);
-
-    console.log("Inicializando eventos da cotação...");
-    // initToolbarEvents(...);
-    // initCustomerEvents();
-    // initInventoryEvents();
-}
-
-function renderErrorState(error, quotationNumber) {
-    if (error.status === 404) {
-        RenderView(createQuotationNotFound(quotationNumber));
-    } else {
-        console.error(error);
-        alert("Erro genérico ao carregar cotação.");
-    }
-}
-
-// --- Método Principal (Orquestrador) ---
 export async function loadQuotationByURLEvent() {
     const quotationNumber = location.pathname.split('/')[2];
 
     try {
-        RenderView(createLoadingState());
+        showLoadingState();
         const response = await fetchQuotation(quotationNumber);
         setQuotation(response.data);
-        renderSuccessState();
+        const globalBanks = globalState.company.bankAccounts;
+        renderSuccessState(quotation, globalBanks);
     } catch (error) {
         renderErrorState(error, quotationNumber);
     }
