@@ -1,10 +1,12 @@
 // pterms-render.js
 import { quotation } from '../../logic/data-state.js';
 import { createDocumentFooter } from '../../quotation-viewgen.js';
+import { addAccountToQuotation, buildSelectedIds, removeAccountFromQuotation, shouldHideNoPayment } from './logic/math.js';
 import {
     createAccountPrintCard, createAvailableAccountItem, createAvailableAccountsListColumn,
-    createNoPaymentMessage, createPaymentMethodModal, creatQuotationAccounts,
-    createSelectedAccountItem, createSelectedAccountsListColumn
+    createNoPaymentMessage, createPaymentMethodModal,
+    createSelectedAccountItem, createSelectedAccountsListColumn,
+    creatQuotationAccounts
 } from './pterms-viewgen.js';
 
 export function setupPaymentTerms(A4Sheet, globalBanks, quotationBanks) {
@@ -14,11 +16,11 @@ export function setupPaymentTerms(A4Sheet, globalBanks, quotationBanks) {
     const noPaymentMsg = createNoPaymentMessage();
     const paymentMethodModal = createPaymentMethodModal(selectedList, availableList);
 
-    const selectedIds = new Set(quotationBanks.map(q => q.id));
+    const selectedIds = buildSelectedIds(quotationBanks);
 
     initializeAccountLists(globalBanks, selectedIds, selectedList, availableList, visibleAccounts, noPaymentMsg);
 
-    if (selectedList.children.length > 0) {
+    if (shouldHideNoPayment(selectedList.children.length)) {
         noPaymentMsg.classList.add("hidden");
     }
 
@@ -31,7 +33,7 @@ export function setupPaymentTerms(A4Sheet, globalBanks, quotationBanks) {
 /** * Subdivisão: Operações de Adição (Data + Print)
  */
 function performAddActions(account, visibleAccounts, noPaymentMsg) {
-    quotation.issuer.bankAccounts.push(account);
+    addAccountToQuotation(quotation, account);
     const printCard = createAccountPrintCard(account);
     visibleAccounts.appendChild(printCard);
     noPaymentMsg.classList.add("hidden");
@@ -40,8 +42,7 @@ function performAddActions(account, visibleAccounts, noPaymentMsg) {
 /** * Subdivisão: Operações de Remoção (Data + Print)
  */
 function performRemoveActions(account, selectedList, noPaymentMsg) {
-    const idx = quotation.issuer.bankAccounts.findIndex(a => a.id === account.id);
-    if (idx > -1) quotation.issuer.bankAccounts.splice(idx, 1);
+    removeAccountFromQuotation(quotation, account);
 
     $(`print-bank-${account.id}`).remove();
     if (selectedList.children.length === 0) {
