@@ -5,11 +5,12 @@ import {
 } from "../../shared/viewgencore.js";
 
 // MAIN ENTRY POINT
-export function createQuotationView(quotationId, handleSaveClick, handleOptionsClick) {
+export function createQuotationView(quotationId, paymentMethodModal, handleSaveClick, handleOptionsClick) {
     return div({ id: "app", className: "md:px-8 md:pb-8" }).Append(
         createNavigationHeader(quotationId, handleSaveClick, handleOptionsClick),
-        createA4Sheet(quotationId),
-        createPrintFAB()
+        createA4Sheet(quotationId, paymentMethodModal),
+        createPrintFAB(),
+        paymentMethodModal
     );
 }
 
@@ -97,7 +98,7 @@ function createOptionsDropdown(handleOptionsClick) {
 }
 
 // 2. A4 DOCUMENT STRUCTURE
-function createA4Sheet(quotationId) {
+function createA4Sheet(quotationId, paymentMethodModal) {
     return div({
         id: "a4Page",
         className: "mt-10 w-[210mm] min-h-[297mm] bg-white rounded-lg shadow-lg mx-auto p-12 border border-gray-200 border-t"
@@ -106,7 +107,7 @@ function createA4Sheet(quotationId) {
         createCustomerAndTitleSection(quotationId),
         createProductManagerButton(),
         createItemsTable(),
-        createDocumentFooter()
+        createDocumentFooter(paymentMethodModal)
     );
 }
 
@@ -141,7 +142,7 @@ function createQuoteMetadata() {
         }),
         div({ className: "mt-0 space-y-1 text-sm" }).Append(
             // Date Field
-            createMetadataRow("Data:", 
+            createMetadataRow("Data:",
                 span({ id: "quoteDate", className: "print-only hidden" }),
                 input({ type: "date", id: "quoteDateInput", className: "no-print mb-2 text-sm border border-gray-300 rounded-md py-0 px-1 text-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500" })
             ),
@@ -253,13 +254,13 @@ function createItemsTable() {
 
 // 6. DOCUMENT FOOTER (Conditions, Totals, Payments)
 
-function createDocumentFooter() {
+function createDocumentFooter(paymentMethodModal) {
     return footer({ className: "pt-4 border-t border-gray-200" }).Append(
         div({ className: "flex justify-between items-start gap-8" }).Append(
             createConditionsColumn(), // Left side: Warranty, Notes
             createTotalsColumn()      // Right side: Math, Discounts
         ),
-        createPaymentDetailsSection() // Bottom: Terms, Bank Accounts
+        createPaymentDetailsSection(paymentMethodModal) // Bottom: Terms, Bank Accounts
     );
 }
 
@@ -302,7 +303,6 @@ function createConditionsColumn() {
 }
 
 // --- Footer Sub-Component: Totals (Right) ---
-
 function createTotalsColumn() {
     return div({ className: "w-1/2 max-w-xs text-sm" }).Append(
         div({ className: "space-y-2" }).Append(
@@ -342,15 +342,15 @@ function createTotalRow(label, valueId, valueClass) {
 }
 
 // --- Footer Sub-Component: Payment Details (Bottom) ---
-
-function createPaymentDetailsSection() {
+function createPaymentDetailsSection(paymentMethodModal) {
     return div({ className: "mt-8 pt-8 border-t border-gray-200" }).Append(
         h4({ className: "font-bold text-gray-800 mb-1", textContent: "Métodos de Pagamento" }),
         createPaymentTermsControls(),
         div({ className: "mb-4 no-print" }).Append(
             button({
                 id: "managePaymentMethodsButton",
-                className: "w-full px-6 py-3 bg-gray-100 text-gray-700 text-base font-medium rounded-lg shadow-sm border border-gray-300 hover:bg-gray-200 transition duration-200 flex items-center justify-center gap-2"
+                className: "w-full px-6 py-3 bg-gray-100 text-gray-700 text-base font-medium rounded-lg shadow-sm border border-gray-300 hover:bg-gray-200 transition duration-200 flex items-center justify-center gap-2",
+                onclick: () => { paymentMethodModal.classList.remove('hidden'); }
             }).Append(
                 RichElement("i", { dataset: { lucide: "wallet" }, className: "w-5 h-5" }),
                 span({ textContent: "Gerir Contas Bancárias" })

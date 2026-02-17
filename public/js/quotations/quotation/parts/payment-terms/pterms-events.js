@@ -39,8 +39,6 @@ function triggerInitialRender() {
 }
 
 // --- Gestão de Contas Bancárias ---
-// --- Gestão de Contas Bancárias (Otimizado) ---
-
 export function setupBankAccountsEvents() {
     const btnManage = $('managePaymentMethodsButton');
     const modal = $('paymentMethodModal');
@@ -48,32 +46,9 @@ export function setupBankAccountsEvents() {
     const closeBtn2 = $('finishPaymentSelectionButton');
     $('warrantyMonths').onchange = (e) => updateElementText($('warrantyMonthsPrint'), e);
     // Vincula eventos reutilizando as consts capturadas
-
-    btnManage.onclick = () => handleOpenModal(modal);
-
-    closeBtn1.onclick = () => handleCloseModal(modal);
-    closeBtn2.onclick = () => handleCloseModal(modal);
-
-    modal.onclick = (e) => handleModalOverlayClick(e, modal);
 }
 
 // Funções de Ação (Handlers)
-
-function handleOpenModal(modalElement) {
-    modalElement.classList.remove('hidden');
-    refreshAccountsUI();
-}
-
-function handleCloseModal(modalElement) {
-    modalElement.classList.add('hidden');
-}
-
-function handleModalOverlayClick(e, modalElement) {
-    if (e.target === modalElement) {
-        handleCloseModal(modalElement);
-    }
-}
-
 function handleAccountAdd(id) {
     selectedAccountIds = addAccountId(selectedAccountIds, id);
     refreshAccountsUI();
