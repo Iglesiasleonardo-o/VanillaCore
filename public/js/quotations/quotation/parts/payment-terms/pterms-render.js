@@ -1,6 +1,5 @@
 // pterms-render.js
 import { quotation } from '../../logic/data-state.js';
-import { createDocumentFooter } from '../../quotation-viewgen.js';
 import { addAccountToQuotation, buildSelectedIds, removeAccountFromQuotation, shouldHideNoPayment } from './logic/math.js';
 import {
     createAccountPrintCard, createAvailableAccountItem, createAvailableAccountsListColumn,
@@ -9,7 +8,7 @@ import {
     creatQuotationAccounts
 } from './pterms-viewgen.js';
 
-export function setupPaymentTerms(A4Sheet, globalBanks, quotationBanks) {
+export function setupPaymentTerms(globalBanks, quotationBanks, renderFooter) {
     const selectedList = createSelectedAccountsListColumn();
     const availableList = createAvailableAccountsListColumn();
     const visibleAccounts = creatQuotationAccounts();
@@ -25,7 +24,7 @@ export function setupPaymentTerms(A4Sheet, globalBanks, quotationBanks) {
     }
 
     visibleAccounts.appendChild(noPaymentMsg);
-    A4Sheet.appendChild(createDocumentFooter(paymentMethodModal, visibleAccounts));
+    renderFooter(paymentMethodModal, visibleAccounts);
 
     return paymentMethodModal;
 }

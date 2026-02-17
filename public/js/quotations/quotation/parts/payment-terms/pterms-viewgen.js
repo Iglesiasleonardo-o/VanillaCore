@@ -145,13 +145,6 @@ export function createAccountPrintCard(account) {
     );
 }
 
-export function createEmptyState(text) {
-    return div({
-        className: 'text-gray-400 text-sm italic text-center p-4',
-        textContent: text
-    });
-}
-
 export function creatQuotationAccounts() {
     return div({ id: "paymentMethodsPrint", className: "grid grid-cols-2 gap-x-8 gap-y-4 text-xs text-gray-600" });
 }
