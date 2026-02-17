@@ -152,7 +152,7 @@ export function createEmptyState(text) {
     });
 }
 
-export function createPrintContainer() {
+export function creatQuotationAccounts() {
     return div({ id: "paymentMethodsPrint", className: "grid grid-cols-2 gap-x-8 gap-y-4 text-xs text-gray-600" });
 }
 

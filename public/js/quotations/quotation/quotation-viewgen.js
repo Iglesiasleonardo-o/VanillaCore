@@ -98,7 +98,7 @@ function createQuoteMetadata() {
             src: "../../../img/inovitek-logo.svg",
             alt: "Logo da Empresa",
             className: "w-56 object-contain mb-4",
-            onerror: "this.src='https://placehold.co/224x60/CCCCCC/333333?text=INOVITEK+LOGO'"
+            onerror: e => { e.target.src = 'https://placehold.co/224x60/CCCCCC/333333?text=INOVITEK+LOGO'; }
         }),
         div({ className: "mt-0 space-y-1 text-sm" }).Append(
             // Date Field
@@ -152,7 +152,7 @@ function createCustomerAndTitleSection(quotationNumber) {
 }
 
 function createCustomerSearchSection() {
-    return section({ className: "pt-1 border-t w-1/2" }).Append(
+    return section({ className: "pt-1 border-t border-gray-300 w-1/2" }).Append(
         h3({ className: "text-sm font-bold text-gray-500 uppercase tracking-wide", textContent: "Cliente" }),
         div({ className: "w-full no-print" }).Append(
             div({ className: "relative mb-2" }).Append(
@@ -205,7 +205,7 @@ function createItemsTable() {
             ),
             tbody({ id: "quoteItemsTableBody", className: "divide-y divide-gray-200" }).Append(
                 tr({ id: "emptyRow" }).Append(
-                    td({ colspan: "7", className: "p-6 text-center text-gray-400", textContent: "Nenhum produto adicionado." })
+                    td({ colSpan: "7", className: "p-6 text-center text-gray-400", textContent: "Nenhum produto adicionado." })
                 )
             )
         )

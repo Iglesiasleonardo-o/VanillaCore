@@ -3,37 +3,37 @@ import { quotation } from '../../logic/data-state.js';
 import { createDocumentFooter } from '../../quotation-viewgen.js';
 import {
     createAccountPrintCard, createAvailableAccountItem, createAvailableAccountsListColumn,
-    createNoPaymentMessage, createPaymentMethodModal, createPrintContainer,
+    createNoPaymentMessage, createPaymentMethodModal, creatQuotationAccounts,
     createSelectedAccountItem, createSelectedAccountsListColumn
 } from './pterms-viewgen.js';
 
 export function setupPaymentTerms(A4Sheet, globalBanks, quotationBanks) {
     const selectedList = createSelectedAccountsListColumn();
     const availableList = createAvailableAccountsListColumn();
-    const printEl = createPrintContainer();
+    const visibleAccounts = creatQuotationAccounts();
     const noPaymentMsg = createNoPaymentMessage();
     const paymentMethodModal = createPaymentMethodModal(selectedList, availableList);
 
     const selectedIds = new Set(quotationBanks.map(q => q.id));
 
-    initializeAccountLists(globalBanks, selectedIds, selectedList, availableList, printEl, noPaymentMsg);
+    initializeAccountLists(globalBanks, selectedIds, selectedList, availableList, visibleAccounts, noPaymentMsg);
 
     if (selectedList.children.length > 0) {
         noPaymentMsg.classList.add("hidden");
     }
 
-    printEl.appendChild(noPaymentMsg);
-    A4Sheet.appendChild(createDocumentFooter(paymentMethodModal, printEl));
+    visibleAccounts.appendChild(noPaymentMsg);
+    A4Sheet.appendChild(createDocumentFooter(paymentMethodModal, visibleAccounts));
 
     return paymentMethodModal;
 }
 
 /** * Subdivisão: Operações de Adição (Data + Print)
  */
-function performAddActions(account, printEl, noPaymentMsg) {
+function performAddActions(account, visibleAccounts, noPaymentMsg) {
     quotation.issuer.bankAccounts.push(account);
     const printCard = createAccountPrintCard(account);
-    printEl.appendChild(printCard);
+    visibleAccounts.appendChild(printCard);
     noPaymentMsg.classList.add("hidden");
 }
 
@@ -51,22 +51,22 @@ function performRemoveActions(account, selectedList, noPaymentMsg) {
 
 /** * Handlers Principais
  */
-const handleAddClick = (account, e, selectedList, availableList, printEl, noPaymentMsg) => {
+const handleAddClick = (account, e, selectedList, availableList, visibleAccounts, noPaymentMsg) => {
     e.currentTarget.remove();
 
     const newItem = createSelectedAccountItem(account, (event) =>
-        handleRemoveClick(account, event, selectedList, availableList, printEl, noPaymentMsg)
+        handleRemoveClick(account, event, selectedList, availableList, visibleAccounts, noPaymentMsg)
     );
 
     selectedList.appendChild(newItem);
-    performAddActions(account, printEl, noPaymentMsg);
+    performAddActions(account, visibleAccounts, noPaymentMsg);
 };
 
-const handleRemoveClick = (account, e, selectedList, availableList, printEl, noPaymentMsg) => {
+const handleRemoveClick = (account, e, selectedList, availableList, visibleAccounts, noPaymentMsg) => {
     e.currentTarget.remove();
 
     const newItem = createAvailableAccountItem(account, (event) =>
-        handleAddClick(account, event, selectedList, availableList, printEl, noPaymentMsg)
+        handleAddClick(account, event, selectedList, availableList, visibleAccounts, noPaymentMsg)
     );
 
     availableList.appendChild(newItem);
@@ -75,20 +75,16 @@ const handleRemoveClick = (account, e, selectedList, availableList, printEl, noP
 
 /** * Loop de Inicialização
  */
-function initializeAccountLists(globalBanks, selectedIds, selectedList, availableList, printEl, noPaymentMsg) {
+function initializeAccountLists(globalBanks, selectedIds, selectedList, availableList, visibleAccounts, noPaymentMsg) {
     globalBanks.forEach(account => {
         if (selectedIds.has(account.id)) {
             selectedList.appendChild(createSelectedAccountItem(account, (e) =>
-                handleRemoveClick(account, e, selectedList, availableList, printEl, noPaymentMsg)
+                handleRemoveClick(account, e, selectedList, availableList, visibleAccounts, noPaymentMsg)
             ));
-
-            // Reutiliza a ação de adição para o print inicial
-            const printCard = createAccountPrintCard(account);
-            printCard.id = `print-bank-${account.id}`;
-            printEl.appendChild(printCard);
+            visibleAccounts.appendChild(createAccountPrintCard(account));
         } else {
             availableList.appendChild(createAvailableAccountItem(account, (e) =>
-                handleAddClick(account, e, selectedList, availableList, printEl, noPaymentMsg)
+                handleAddClick(account, e, selectedList, availableList, visibleAccounts, noPaymentMsg)
             ));
         }
     });
