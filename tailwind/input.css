@@ -208,3 +208,22 @@ body.modal-open #modalContainer {
     size: A4;
     margin: 1.5cm;
 }
+
+/* No seu global.css */
+.dropdown-menu::before {
+    content: "";
+    position: absolute;
+    top: -12px;
+    /* Aumente este valor se o 'mt-2' do Tailwind for maior */
+    left: 0;
+    right: 0;
+    height: 12px;
+    /* A altura da ponte invisível */
+    background: transparent;
+}
+
+/* Garante que o hover e o focus mantenham o menu visível */
+.dropdown:hover .dropdown-menu,
+.dropdown:focus-within .dropdown-menu {
+    display: block !important;
+}

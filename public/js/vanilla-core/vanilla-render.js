@@ -5,11 +5,15 @@ export function renderInitialView() {
     document.body.appendChild(createMainView());
 }
 
-export function RenderView(viewElement) {
-    const container = $('main-wrapper');
+export function RenderView() {
+    const container = $("main-wrapper");
     container.textContent = '';
-    container.appendChild(viewElement);
-    updateLucideIcons(); // not sure if its always needed
+
+    for (const view of arguments) {
+        container.appendChild(view);
+    }
+    
+    updateLucideIcons();
 }
 
 export function updateLucideIcons() {

@@ -9,14 +9,5 @@ export function renderSuccessState() {
 
 export function resetSaveButton() {
     $('saveQuoteButton').disabled = false;
-    $('saveButtonText').textContent = "Gravar Cotacao";
-}
-
-export function toggleOptionsMenu() {
-    const menu = $('optionsMenuDropdown');
-    menu.classList.toggle('hidden');
-}
-
-export function hideOptionsMenu() {
-    $('optionsMenuDropdown').classList.add('hidden');
+    $('saveButtonText').textContent = "Gravar";
 }

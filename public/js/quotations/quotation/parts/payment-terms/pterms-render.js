@@ -1,71 +1,95 @@
 // pterms-render.js
-import { processBanks } from './logic/math.js';
-import { createAccountPrintCard, createAvailableAccountItem, createEmptyState, createSelectedAccountItem } from './pterms-viewgen.js';
+import { quotation } from '../../logic/data-state.js';
+import { createDocumentFooter } from '../../quotation-viewgen.js';
+import {
+    createAccountPrintCard, createAvailableAccountItem, createAvailableAccountsListColumn,
+    createNoPaymentMessage, createPaymentMethodModal, createPrintContainer,
+    createSelectedAccountItem, createSelectedAccountsListColumn
+} from './pterms-viewgen.js';
 
-export function renderPaymentTerms(
-    selectedList, availableList, printEl, noPaymentMsg,
-    globalBanks, quotationBanks,
-    callback
-) {
-    const handleSelected = (account) => {
+export function setupPaymentTerms(A4Sheet, globalBanks, quotationBanks) {
+    const selectedList = createSelectedAccountsListColumn();
+    const availableList = createAvailableAccountsListColumn();
+    const printEl = createPrintContainer();
+    const noPaymentMsg = createNoPaymentMessage();
+    const paymentMethodModal = createPaymentMethodModal(selectedList, availableList);
+
+    const selectedIds = new Set(quotationBanks.map(q => q.id));
+
+    initializeAccountLists(globalBanks, selectedIds, selectedList, availableList, printEl, noPaymentMsg);
+
+    if (selectedList.children.length > 0) {
         noPaymentMsg.classList.add("hidden");
-        selectedList.appendChild(createSelectedAccountItem(account, callback));
-        printEl.appendChild(createAccountPrintCard(account));
-    };
+    }
 
-    const handleAvailable = (account) => {
-        availableList.appendChild(createAvailableAccountItem(account, callback));
-    };
+    printEl.appendChild(noPaymentMsg);
+    A4Sheet.appendChild(createDocumentFooter(paymentMethodModal, printEl));
 
-    // Execução da lógica pura passando funções como argumentos
-    processBanks(
-        globalBanks,
-        quotationBanks,
-        handleSelected,
-        handleAvailable
+    return paymentMethodModal;
+}
+
+/** * Subdivisão: Operações de Adição (Data + Print)
+ */
+function performAddActions(account, printEl, noPaymentMsg) {
+    quotation.issuer.bankAccounts.push(account);
+    const printCard = createAccountPrintCard(account);
+    printEl.appendChild(printCard);
+    noPaymentMsg.classList.add("hidden");
+}
+
+/** * Subdivisão: Operações de Remoção (Data + Print)
+ */
+function performRemoveActions(account, selectedList, noPaymentMsg) {
+    const idx = quotation.issuer.bankAccounts.findIndex(a => a.id === account.id);
+    if (idx > -1) quotation.issuer.bankAccounts.splice(idx, 1);
+
+    $(`print-bank-${account.id}`).remove();
+    if (selectedList.children.length === 0) {
+        noPaymentMsg.classList.remove("hidden");
+    }
+}
+
+/** * Handlers Principais
+ */
+const handleAddClick = (account, e, selectedList, availableList, printEl, noPaymentMsg) => {
+    e.currentTarget.remove();
+
+    const newItem = createSelectedAccountItem(account, (event) =>
+        handleRemoveClick(account, event, selectedList, availableList, printEl, noPaymentMsg)
     );
-}
 
-// --- Contas Bancárias (Modal) ---
-export function renderAccountsModalLists(selectedListContainer, availableListContainer, selectedAccounts, availableAccounts, onRemove, onAdd) {
-    // Limpar containers
-    selectedListContainer.textContent = '';
-    availableListContainer.textContent = '';
+    selectedList.appendChild(newItem);
+    performAddActions(account, printEl, noPaymentMsg);
+};
 
-    // Renderizar Selecionados
-    if (selectedAccounts.length === 0) {
-        selectedListContainer.appendChild(createEmptyState('Nenhuma conta selecionada.'));
-    } else {
-        selectedAccounts.forEach(acc => {
-            selectedListContainer.appendChild(createAccountListItem(acc, true, onRemove));
-        });
-    }
+const handleRemoveClick = (account, e, selectedList, availableList, printEl, noPaymentMsg) => {
+    e.currentTarget.remove();
 
-    // Renderizar Disponíveis
-    if (availableAccounts.length === 0) {
-        availableListContainer.appendChild(createEmptyState('Todas as contas foram adicionadas.'));
-    } else {
-        availableAccounts.forEach(acc => {
-            availableListContainer.appendChild(createAccountListItem(acc, false, onAdd));
-        });
-    }
-}
+    const newItem = createAvailableAccountItem(account, (event) =>
+        handleAddClick(account, event, selectedList, availableList, printEl, noPaymentMsg)
+    );
 
-// --- Contas Bancárias (Impressão) ---
+    availableList.appendChild(newItem);
+    performRemoveActions(account, selectedList, noPaymentMsg);
+};
 
-export function renderAccountsPrintArea(printContainerElement, selectedAccounts) {
-    printContainerElement.textContent = ''; // Limpar anterior
+/** * Loop de Inicialização
+ */
+function initializeAccountLists(globalBanks, selectedIds, selectedList, availableList, printEl, noPaymentMsg) {
+    globalBanks.forEach(account => {
+        if (selectedIds.has(account.id)) {
+            selectedList.appendChild(createSelectedAccountItem(account, (e) =>
+                handleRemoveClick(account, e, selectedList, availableList, printEl, noPaymentMsg)
+            ));
 
-    // Aplica layout grid
-    printContainerElement.className = 'grid grid-cols-2 gap-x-8 gap-y-4 text-xs text-gray-600';
-
-    if (selectedAccounts.length === 0) {
-        printContainerElement.classList.add('hidden');
-        return;
-    }
-
-    printContainerElement.classList.remove('hidden');
-    selectedAccounts.forEach(account => {
-        printContainerElement.appendChild(createAccountPrintCard(account));
+            // Reutiliza a ação de adição para o print inicial
+            const printCard = createAccountPrintCard(account);
+            printCard.id = `print-bank-${account.id}`;
+            printEl.appendChild(printCard);
+        } else {
+            availableList.appendChild(createAvailableAccountItem(account, (e) =>
+                handleAddClick(account, e, selectedList, availableList, printEl, noPaymentMsg)
+            ));
+        }
     });
 }

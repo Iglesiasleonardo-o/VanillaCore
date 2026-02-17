@@ -4,23 +4,6 @@ import {
     table, thead, tbody, tr, th, td, RichElement
 } from "../../shared/viewgencore.js";
 
-// MAIN ENTRY POINT
-export function createQuotationView(quotation,
-    paymentMethodModal, paymentMethodsPrint, noPaymentMethod,
-    handleSaveClick, handleOptionsClick
-) {
-    const { number: quotationNumber } = quotation;
-
-    return div({ id: "app", className: "md:px-8 md:pb-8" }).Append(
-        div({ id: "quotation-data-wrapper" }).Append(
-            createNavigationHeader(quotationNumber, handleSaveClick, handleOptionsClick),
-            createA4Sheet(quotationNumber, paymentMethodModal, paymentMethodsPrint, noPaymentMethod),
-            createPrintFAB(),
-            paymentMethodModal
-        )
-    );
-}
-
 export function createLoadingState() {
     return div({
         id: "loadingScreen",
@@ -75,91 +58,8 @@ export function createQuotationNotFound() {
     );
 }
 
-// 1. APP NAVIGATION & TOOLBAR
-function createNavigationHeader(quotationNumber, handleSaveClick, handleOptionsClick) {
-    return header({
-        id: "mainHeader",
-        className: "sticky top-0 bg-gray-100 border-gray-200 z-30 pt-4 md:pt-8 pb-6 flex flex-col md:flex-row items-center justify-between gap-4 border-b border-gray-200"
-    }).Append(
-        createBackLink(),
-        createPageTitle(quotationNumber),
-        createActionToolbar(handleSaveClick, handleOptionsClick)
-    );
-}
-
-function createBackLink() {
-    return div({ className: "md:flex-1" }).Append(
-        a({
-            href: "/cotacoes",
-            className: "flex items-center gap-1 text-base font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-lg py-2 px-3 transition-colors"
-        }).Append(
-            RichElement("i", { dataset: { lucide: "chevron-left" }, className: "w-5 h-5 -ml-1" }),
-            span({ textContent: "Lista de Cotações" })
-        )
-    );
-}
-
-function createPageTitle(quotationNumber) {
-    return div({ className: "md:flex-1 md:text-center" }).Append(
-        h1({ className: "text-3xl font-bold text-gray-800", textContent: `Cotação Nº ${quotationNumber}` })
-    );
-}
-
-function createActionToolbar(handleSaveClick, handleOptionsClick) {
-    return div({ className: "md:flex-1 flex md:justify-end" }).Append(
-        div({ className: "flex items-center gap-3" }).Append(
-            // Print Button
-            button({
-                id: "printButton",
-                className: "no-print flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition duration-200",
-                onclick: () => window.print()
-            }).Append(
-                RichElement("i", { dataset: { lucide: "printer" }, className: "w-5 h-5" }),
-                span({ textContent: "Imprimir" })
-            ),
-            // Save Button
-            button({
-                id: "saveQuoteButton",
-                className: "no-print flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition duration-200",
-                onclick: handleSaveClick
-            }).Append(
-                RichElement("i", { dataset: { lucide: "save" }, className: "w-5 h-5" }),
-                span({ id: "saveButtonText", textContent: "Guardar" })
-            ),
-            // Options Dropdown
-            createOptionsDropdown(handleOptionsClick)
-        )
-    );
-}
-
-function createOptionsDropdown(handleOptionsClick) {
-    return div({ className: "relative no-print" }).Append(
-        button({
-            id: "optionsMenuButton",
-            className: "p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-200",
-            onclick: handleOptionsClick
-        }).Append(
-            RichElement("i", { dataset: { lucide: "more-vertical" }, className: "w-5 h-5" })
-        ),
-        div({
-            id: "optionsMenuDropdown",
-            className: "hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 z-50"
-        }).Append(
-            RichElement("button", {
-                id: "saveButton",
-                className: "action-button flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100",
-                dataset: { action: "save" },
-                style: "width: 100%;"
-            }).Append(
-                RichElement("i", { dataset: { lucide: "save" }, className: "w-5 h-5 text-blue-600" }),
-                span({ textContent: "Clonar cotação" })
-            )
-        )
-    );
-}
-
 // 2. A4 DOCUMENT STRUCTURE
-function createA4Sheet(quotationNumber, paymentMethodModal, paymentMethodsPrint, noPaymentMethod) {
+export function createA4Sheet(quotationNumber) {
     return div({
         id: "a4Page",
         className: "mt-10 w-[210mm] min-h-[297mm] bg-white rounded-lg shadow-lg mx-auto p-12 border border-gray-200 border-t"
@@ -168,7 +68,6 @@ function createA4Sheet(quotationNumber, paymentMethodModal, paymentMethodsPrint,
         createCustomerAndTitleSection(quotationNumber),
         createProductManagerButton(),
         createItemsTable(),
-        createDocumentFooter(paymentMethodModal, paymentMethodsPrint, noPaymentMethod)
     );
 }
 
@@ -314,14 +213,13 @@ function createItemsTable() {
 }
 
 // 6. DOCUMENT FOOTER (Conditions, Totals, Payments)
-
-function createDocumentFooter(paymentMethodModal, paymentMethodsPrint, noPaymentMethod) {
+export function createDocumentFooter(paymentMethodModal, printEl) {
     return footer({ className: "pt-4 border-t border-gray-200" }).Append(
         div({ className: "flex justify-between items-start gap-8" }).Append(
             createConditionsColumn(), // Left side: Warranty, Notes
             createTotalsColumn()      // Right side: Math, Discounts
         ),
-        createPaymentDetailsSection(paymentMethodModal, paymentMethodsPrint, noPaymentMethod) // Bottom: Terms, Bank Accounts
+        createPaymentDetailsSection(paymentMethodModal, printEl)
     );
 }
 
@@ -403,7 +301,7 @@ function createTotalRow(label, valueId, valueClass) {
 }
 
 // --- Footer Sub-Component: Payment Details (Bottom) ---
-function createPaymentDetailsSection(paymentMethodModal, paymentMethodsPrint, noPaymentMethod) {
+function createPaymentDetailsSection(paymentMethodModal, paymentMethodsPrint) {
     return div({ className: "mt-8 pt-8 border-t border-gray-200" }).Append(
         h4({ className: "font-bold text-gray-800 mb-1", textContent: "Métodos de Pagamento" }),
         createPaymentTermsControls(),
@@ -417,20 +315,11 @@ function createPaymentDetailsSection(paymentMethodModal, paymentMethodsPrint, no
                 span({ textContent: "Gerir Contas Bancárias" })
             )
         ),
-        paymentMethodsPrint.Append(
-            noPaymentMethod
-        )
+        paymentMethodsPrint
     );
 }
 
 // Funções puras para criar as referências
-export function createPrintContainer() {
-    return div({ id: "paymentMethodsPrint", className: "grid grid-cols-2 gap-x-8 gap-y-4 text-xs text-gray-600" });
-}
-
-export function createNoPaymentMessage() {
-    return p({ id: "noPaymentMethod", className: "col-span-2 text-gray-400", textContent: "Nenhuma conta bancária selecionada." });
-}
 
 function createPaymentTermsControls() {
     // Elements need to be defined before return so the closure works
@@ -480,7 +369,7 @@ function createPaymentTermsControls() {
 }
 
 // 7. UTILITIES
-function createPrintFAB() {
+export function createPrintFAB() {
     return div({
         id: "fabPrintButtonWrapper",
         className: "group no-print fixed bottom-6 right-6 z-40"

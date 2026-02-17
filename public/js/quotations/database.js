@@ -16,6 +16,15 @@ export const quotations = [
                     accountNumber: "1243184787",
                     nib: "000300000012431847870",
                     swift: "BIMOMZMXXXX"
+                },
+                {
+                    id: 2,
+                    bank: "Nedbank Moçambique, S.A",
+                    currency: "MZN",
+                    accountHolder: "INOVITEK LDA",
+                    accountNumber: "00041179005",
+                    nib: "004300000004117900567",
+                    swift: "UNICMZMХ"
                 }
             ]
         },

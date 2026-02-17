@@ -96,10 +96,10 @@ function getAccountDetails(account) {
 }
 
 /** Item para a coluna de Selecionados (Botão de remover) */
-export function createSelectedAccountItem(account, callback) {
+export function createSelectedAccountItem(account, onItemClick) {
     return RichElement("li", {
         className: 'flex justify-between items-start p-3 bg-blue-50 border border-blue-200 rounded cursor-pointer hover:bg-red-50 hover:border-red-300 group transition-colors mb-2',
-        onclick: () => callback(account.id)
+        onclick: e => onItemClick(e)
     }).Append(
         div({ className: 'flex-1 pr-2' }).Append(
             div({ className: 'font-bold text-gray-700 text-sm mb-1', textContent: `${account.bank} (${account.currency})` }),
@@ -112,10 +112,10 @@ export function createSelectedAccountItem(account, callback) {
 }
 
 /** Item para a coluna de Disponíveis (Botão de adicionar) */
-export function createAvailableAccountItem(account, callback) {
+export function createAvailableAccountItem(account, onItemClick) {
     return RichElement("li", {
         className: 'flex justify-between items-start p-3 bg-white border border-gray-200 rounded cursor-pointer hover:bg-green-50 hover:border-green-300 transition-colors mb-2',
-        onclick: () => callback(account.id)
+        onclick: e => onItemClick(e)
     }).Append(
         div({ className: 'flex-1 pr-2' }).Append(
             div({ className: 'font-bold text-gray-700 text-sm mb-1', textContent: `${account.bank} (${account.currency})` }),
@@ -133,7 +133,7 @@ export function createAvailableAccountItem(account, callback) {
 export function createAccountPrintCard(account) {
     const detailsText = `Titular: ${account.accountHolder}\nBanco: ${account.bank}\nConta: ${account.accountNumber}\nNIB: ${account.nib || 'N/A'}\nSWIFT: ${account.swift || 'N/A'}`;
 
-    return div({ className: 'mb-4 break-inside-avoid border-l-2 border-gray-100 pl-3' }).Append(
+    return div({ id: `print-bank-${account.id}`, className: 'mb-4 break-inside-avoid border-l-2 border-gray-100 pl-3' }).Append(
         p({
             className: 'font-bold text-gray-800 text-sm mb-1',
             textContent: `${account.bank} (${account.currency})`
@@ -150,4 +150,12 @@ export function createEmptyState(text) {
         className: 'text-gray-400 text-sm italic text-center p-4',
         textContent: text
     });
+}
+
+export function createPrintContainer() {
+    return div({ id: "paymentMethodsPrint", className: "grid grid-cols-2 gap-x-8 gap-y-4 text-xs text-gray-600" });
+}
+
+export function createNoPaymentMessage() {
+    return p({ id: "noPaymentMethod", className: "col-span-2 text-gray-400", textContent: "Nenhuma conta bancária selecionada." });
 }

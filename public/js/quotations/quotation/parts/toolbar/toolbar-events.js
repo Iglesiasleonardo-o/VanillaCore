@@ -1,14 +1,18 @@
 import { executeSave } from './toolbar-logic.js';
-import { renderLoadingState, renderSuccessState, resetSaveButton, toggleOptionsMenu, hideOptionsMenu } from './toolbar-render.js';
+import { renderLoadingState, renderSuccessState, resetSaveButton } from './toolbar-render.js';
+import { createNavigationHeader } from './toolbar-viewgen.js';
 
-export async function handleSaveClick() {
+export function setupNavigationToolbar(quotationNumber) {
+    return createNavigationHeader(quotationNumber, handleSaveClick, handleCloneClick);
+}
+
+async function handleSaveClick() {
     renderLoadingState();
     await executeSave();
     renderSuccessState();
     setTimeout(resetSaveButton, 1800);
 }
 
-export function handleOptionsClick(e) {
-    e.stopPropagation();
-    toggleOptionsMenu();
+function handleCloneClick(e) {
+    console.log("LOGICA DE CLONAR COTACAO AQUI, COMECAR POR FECHAR O BOTAO CLONAR");
 }
