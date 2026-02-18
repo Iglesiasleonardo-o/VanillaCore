@@ -1,8 +1,10 @@
-export function createDocumentHeader(quotation) {
+import { div, h2, header, img, input, option, p, RichElement, select, span } from "../../../../shared/viewgencore.js";
+
+export function createDocumentHeader(quotation, updateExpiry) {
     const { issuer } = quotation;
     return header({ className: "flex justify-between items-start border-gray-200" }).Append(
         createCompanyInfo(issuer),
-        createQuoteMetadata(quotation)
+        createQuoteMetadata(quotation, updateExpiry)
     );
 }
 
@@ -19,7 +21,14 @@ function createCompanyInfo(issuer) {
     );
 }
 
-function createQuoteMetadata(quotation) {
+function createQuoteMetadata(quotation, updateExpiry) {
+    const sellerName = quotation.metadata?.seller || "Anónimo";
+    const expiryDays = quotation.metadata?.expiry_days || 7;
+
+    // Ajustado para bater com o seu schema (issue_date)
+    const issueDate = quotation.issue_date;
+    const expiryDate = quotation.expiry_date;
+
     return div({ className: "flex flex-col items-end text-right" }).Append(
         img({
             src: "../../../img/inovitek-logo.svg",
@@ -30,20 +39,22 @@ function createQuoteMetadata(quotation) {
         div({ className: "mt-0 space-y-1 text-sm" }).Append(
             // Date Field
             createMetadataRow("Data:",
-                span({ id: "quoteDate", className: "print-only hidden" }),
+                span({ id: "quoteDate", className: "print-only hidden", textContent: issueDate }),
                 input({
-                    type: "date", id: "quoteDateInput", className: "no-print mb-2 text-sm border border-gray-300 rounded-md py-0 px-1 text-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500",
-                    value: quotation.issue_date
+                    type: "date",
+                    id: "quoteDateInput",
+                    className: "no-print mb-2 text-sm border border-gray-300 rounded-md py-0 px-1 text-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500",
+                    value: issueDate
                 })
             ),
             // Validity Field
-            createMetadataRow("Válida até:",
-                span({ id: "quoteExpiryDate", className: "print-only hidden" }),
-                createValiditySelector()
+            createMetadataRow("Válida até",
+                span({ id: "quoteExpiryDate", className: "print-only hidden", textContent: expiryDate }),
+                createValiditySelector(expiryDays, expiryDate, updateExpiry)
             ),
             // Seller Field
             createMetadataRow("Vendedor:",
-                span({ id: "quoteSeller", className: "text-gray-600", textContent: "Cristiana Razaque" })
+                span({ id: "quoteSeller", className: "text-gray-600", textContent: sellerName })
             )
         )
     );
@@ -56,16 +67,51 @@ function createMetadataRow(label, ...children) {
     );
 }
 
-function createValiditySelector() {
+function createValiditySelector(selectedDays, currentExpiryDate, updateExpiry) {
+    const standardValues = ["7", "15", "30", "120"];
+    const isOther = !standardValues.includes(selectedDays.toString());
+
+    // Input para dias personalizados
+    const otherInput = input({
+        type: "number",
+        id: "quoteValidityOther",
+        className: `${isOther ? '' : 'hidden'} mt-1 w-full text-sm border border-gray-300 rounded-md py-0.5 px-2 focus:outline-none focus:ring-1 focus:ring-blue-500`,
+        placeholder: "Ex: 45",
+        value: isOther ? selectedDays : "",
+        oninput: (e) => updateExpiry(e.target.value) // Atualiza enquanto digita
+    });
+
+    const selectEl = select({
+        id: "quoteValidityDays",
+        className: "w-full text-sm border border-gray-300 rounded-md py-0.5 px-2 focus:outline-none focus:ring-1 focus:ring-blue-500",
+        onchange: (e) => {
+            if (e.target.value === "outro") {
+                otherInput.classList.remove("hidden");
+                otherInput.focus();
+                otherInput.select();
+                updateExpiry(otherInput.value);
+            } else {
+                otherInput.classList.add("hidden");
+                updateExpiry(e.target.value); // Atualiza com o valor fixo (7, 15, etc)
+            }
+        }
+    }).Append(
+        option({ value: "7", textContent: "7 dias", selected: selectedDays == 7 }),
+        option({ value: "15", textContent: "15 dias", selected: selectedDays == 15 }),
+        option({ value: "30", textContent: "30 dias", selected: selectedDays == 30 }),
+        option({ value: "120", textContent: "120 dias", selected: selectedDays == 120 }),
+        option({ value: "outro", textContent: "Outro (dias)", selected: isOther })
+    );
+
+    const expiryDisplay = span({
+        id: "quoteExpiryDateUI",
+        className: "mt-0.5 text-xs text-gray-500",
+        textContent: `Válida até ${currentExpiryDate}`
+    });
+
     return div({ className: "no-print -mt-1.5" }).Append(
-        select({ id: "quoteValidityDays", className: "w-full text-sm border border-gray-300 rounded-md py-0.5 px-2 focus:outline-none focus:ring-1 focus:ring-blue-500" }).Append(
-            option({ value: "7", textContent: "7 dias" }),
-            option({ value: "15", textContent: "15 dias" }),
-            option({ value: "30", selected: true, textContent: "30 dias" }),
-            option({ value: "120", textContent: "120 dias" }),
-            option({ value: "outro", textContent: "Outro (dias)" })
-        ),
-        input({ type: "number", id: "quoteValidityOther", className: "hidden mt-1 w-full text-sm border border-gray-300 rounded-md py-0.5 px-2 focus:outline-none focus:ring-1 focus:ring-blue-500", placeholder: "Ex: 45" }),
-        span({ id: "quoteExpiryDateUI", className: "mt-0.5 text-xs text-gray-500" })
+        selectEl,
+        otherInput,
+        expiryDisplay
     );
 }
