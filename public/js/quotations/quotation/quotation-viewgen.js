@@ -59,12 +59,12 @@ export function createQuotationNotFound() {
 }
 
 // 2. A4 DOCUMENT STRUCTURE
-export function createA4Sheet(quotationNumber) {
+export function createA4Sheet(quotationNumber, headerView) {
     return div({
         id: "a4Page",
         className: "mt-10 w-[210mm] min-h-[297mm] bg-white rounded-lg shadow-lg mx-auto p-12 border border-gray-200 border-t"
     }).Append(
-        // createDocumentHeader(),
+        headerView,
         createCustomerAndTitleSection(quotationNumber),
         createProductManagerButton(),
         createItemsTable(),

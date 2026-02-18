@@ -19,7 +19,7 @@ function createCompanyInfo(issuer) {
     );
 }
 
-function createQuoteMetadata() {
+function createQuoteMetadata(quotation) {
     return div({ className: "flex flex-col items-end text-right" }).Append(
         img({
             src: "../../../img/inovitek-logo.svg",
@@ -31,7 +31,10 @@ function createQuoteMetadata() {
             // Date Field
             createMetadataRow("Data:",
                 span({ id: "quoteDate", className: "print-only hidden" }),
-                input({ type: "date", id: "quoteDateInput", className: "no-print mb-2 text-sm border border-gray-300 rounded-md py-0 px-1 text-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500" })
+                input({
+                    type: "date", id: "quoteDateInput", className: "no-print mb-2 text-sm border border-gray-300 rounded-md py-0 px-1 text-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500",
+                    value: quotation.issue_date
+                })
             ),
             // Validity Field
             createMetadataRow("Válida até:",
