@@ -6,7 +6,14 @@ export const quotations = [
         expiry_date: "2026-03-19",
         metadata: { seller: "Cristiana Razaque", expiry_days: 30 },
         issuer: {
-            name: "Inovitek, Lda", address: "Rua da Mocargo, Talhão 2A, Parcela 728, Fomento", city: "Matola", province: "Maputo Província", zip_code: "1102", country: "Moçambique", nuit: "401956298", logo_url: "https://storage.cdn.com/logos/inovitek.png",
+            name: "Inovitek, Lda",
+            address: "Rua da Mocargo, Talhão 2A, Parcela 728, Fomento",
+            city: "Matola",
+            province: "Maputo Província",
+            zip_code: "1102",
+            country: "Moçambique",
+            nuit: "401956298",
+            logo_url: "https://storage.cdn.com/logos/inovitek.png",
             bankAccounts: [
                 {
                     id: 1,

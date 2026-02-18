@@ -20,12 +20,12 @@ export function renderSuccessState(quotation, globalBanks) {
     const quotationNumber = quotation.number;
 
     const A4Sheet = createA4Sheet(quotationNumber);
-    
+
     const paymentModal = setupPaymentTerms(
         globalBanks, quotation.issuer.bankAccounts,
         (modal, print) => A4Sheet.appendChild(createDocumentFooter(modal, print))
     );
-
+    
     // const customerModal = setupCustomerEvents(A4Sheet, quotation.customer);
     // const inventoryModal = setupInventoryEvents(A4Sheet, quotation.items, quotation.totals);
 

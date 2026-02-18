@@ -1,5 +1,5 @@
-import { calculateExpiryDate, formatToDisplayDate, getValidityDays } from './deadlines-logic.js';
-import { renderIssueDate, renderExpiryDate, renderExpiryHelper, setOtherInputVisibility } from './deadlines-render.js';
+import { calculateExpiryDate, formatToDisplayDate, getValidityDays } from './header-logic.js';
+import { renderIssueDate, renderExpiryDate, renderExpiryHelper, setOtherInputVisibility } from './header-render.js';
 
 function handleDeadlinesChange() {
     const issueInput = $('quoteDateInput');
