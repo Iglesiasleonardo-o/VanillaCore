@@ -39,7 +39,8 @@ function renderErrorState(error, quotationNumber) {
 function renderSuccessState(quotation, globalBanks) {
     RenderView(
         setupNavigationToolbar(quotation.number), // doesnt have anything that changes, or requires ui state
+        // This needs to be inside A4 Section
         setupA4Header(quotation),
-        createPrintFAB() // doesnt have anything that changes, or requires ui state
+        // Do customer
     );
 }

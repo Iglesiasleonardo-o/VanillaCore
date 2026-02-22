@@ -5,7 +5,8 @@ export async function sessionMiddleware(req, res, next) {
     // validate refresh and access tokens here with redis, or something similar
 
     if (isAjax) {
-        res.status(statusCode).send(errorMsg);
+        // here must have validated session and pass it on
+        res.sendStatus(400);
     } else {
         res.send(buildEntryHTML(1)); // 1 in client means to show Login page
     }
