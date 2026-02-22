@@ -1,7 +1,7 @@
 import { RenderView } from "../../vanilla-core/vanilla-render.js";
 import { setupA4Header } from "./parts/header/header-render.js";
 import { setupPaymentTerms } from "./parts/payment-terms/pterms-render.js";
-import { setupNavigationToolbar } from "./parts/toolbar/toolbar-events.js";
+import { setupNavigationToolbar } from "./parts/toolbar/toolbar-render.js";
 import { createA4Sheet, createDocumentFooter, createLoadingState, createPrintFAB, createQuotationNotFound } from "./quotation-viewgen.js";
 
 export function showLoadingState() {

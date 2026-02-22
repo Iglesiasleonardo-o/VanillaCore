@@ -1,10 +1,12 @@
-// pterms-render.js
-import { quotation } from '../../logic/data-state.js';
-import { addAccountToQuotation, buildSelectedIds, removeAccountFromQuotation, shouldHideNoPayment } from './logic/math.js';
+import { buildSelectedIds } from './logic/math.js';
+import { handleAddClick, handleRemoveClick } from './pterms-events.js';
 import {
-    createAccountPrintCard, createAvailableAccountItem, createAvailableAccountsListColumn,
+    createAccountPrintCard,
+    createAvailableAccountItem,
+    createAvailableAccountsListColumn,
     createNoPaymentMessage, createPaymentMethodModal,
-    createSelectedAccountItem, createSelectedAccountsListColumn,
+    createSelectedAccountItem,
+    createSelectedAccountsListColumn,
     creatQuotationAccounts
 } from './pterms-viewgen.js';
 
@@ -13,13 +15,24 @@ export function setupPaymentTerms(globalBanks, quotationBanks, renderFooter) {
     const availableList = createAvailableAccountsListColumn();
     const visibleAccounts = creatQuotationAccounts();
     const noPaymentMsg = createNoPaymentMessage();
+
     const paymentMethodModal = createPaymentMethodModal(selectedList, availableList);
 
-    const selectedIds = buildSelectedIds(quotationBanks);
+    const onAdded = (account, el) => performAddActions(
+        account, el, selectedList, visibleAccounts, noPaymentMsg, quotationBanks, onAdded, onRemoved
+    );
 
-    initializeAccountLists(globalBanks, selectedIds, selectedList, availableList, visibleAccounts, noPaymentMsg);
+    const onRemoved = (account, el) => performRemoveActions(
+        account, el, availableList, noPaymentMsg, quotationBanks, onAdded, onRemoved, selectedList
+    );
 
-    if (shouldHideNoPayment(selectedList.children.length)) {
+    // 3. Initialize Lists
+    initializeAccountLists(
+        globalBanks, quotationBanks, selectedList, availableList,
+        visibleAccounts, onAdded, onRemoved
+    );
+
+    if (selectedList.children.length > 0) {
         noPaymentMsg.classList.add("hidden");
     }
 
@@ -29,63 +42,50 @@ export function setupPaymentTerms(globalBanks, quotationBanks, renderFooter) {
     return paymentMethodModal;
 }
 
-/** * Subdivisão: Operações de Adição (Data + Print)
+/** * Initialization Loop 
  */
-function performAddActions(account, visibleAccounts, noPaymentMsg) {
-    addAccountToQuotation(quotation, account);
+function initializeAccountLists(globalBanks, quotationBanks, selectedList, availableList, visibleAccounts, onAdded, onRemoved) {
+    const selectedIds = buildSelectedIds(quotationBanks);
+
+    globalBanks.forEach(account => {
+        if (selectedIds.has(account.id)) {
+            const item = createSelectedAccountItem(account, (e) => handleRemoveClick(account, e, quotationBanks, onRemoved));
+            selectedList.appendChild(item);
+            visibleAccounts.appendChild(createAccountPrintCard(account));
+        } else {
+            const item = createAvailableAccountItem(account, (e) => handleAddClick(account, e, quotationBanks, onAdded));
+            availableList.appendChild(item);
+        }
+    });
+}
+
+/** * Add Actions - Matches your 'performAddActions' logic
+ */
+function performAddActions(account, clickedElement, selectedList, visibleAccounts, noPaymentMsg, quotationBanks, onAdded, onRemoved) {
+    clickedElement.remove();
+
+    const newItem = createSelectedAccountItem(account, (e) => handleRemoveClick(account, e, quotationBanks, onRemoved));
+    selectedList.appendChild(newItem);
+
     const printCard = createAccountPrintCard(account);
     visibleAccounts.appendChild(printCard);
+
+    // Explicit behavior: Always hide message on add
     noPaymentMsg.classList.add("hidden");
 }
 
-/** * Subdivisão: Operações de Remoção (Data + Print)
+/** * Remove Actions - Matches your 'performRemoveActions' logic
  */
-function performRemoveActions(account, selectedList, noPaymentMsg) {
-    removeAccountFromQuotation(quotation, account);
+function performRemoveActions(account, clickedElement, availableList, noPaymentMsg, quotationBanks, onAdded, onRemoved, selectedList) {
+    clickedElement.remove();
+
+    const newItem = createAvailableAccountItem(account, (e) => handleAddClick(account, e, quotationBanks, onAdded));
+    availableList.appendChild(newItem);
 
     $(`print-bank-${account.id}`).remove();
+
+    // Explicit behavior: Check if list is empty to SHOW message
     if (selectedList.children.length === 0) {
         noPaymentMsg.classList.remove("hidden");
     }
-}
-
-/** * Handlers Principais
- */
-const handleAddClick = (account, e, selectedList, availableList, visibleAccounts, noPaymentMsg) => {
-    e.currentTarget.remove();
-
-    const newItem = createSelectedAccountItem(account, (event) =>
-        handleRemoveClick(account, event, selectedList, availableList, visibleAccounts, noPaymentMsg)
-    );
-
-    selectedList.appendChild(newItem);
-    performAddActions(account, visibleAccounts, noPaymentMsg);
-};
-
-const handleRemoveClick = (account, e, selectedList, availableList, visibleAccounts, noPaymentMsg) => {
-    e.currentTarget.remove();
-
-    const newItem = createAvailableAccountItem(account, (event) =>
-        handleAddClick(account, event, selectedList, availableList, visibleAccounts, noPaymentMsg)
-    );
-
-    availableList.appendChild(newItem);
-    performRemoveActions(account, selectedList, noPaymentMsg);
-};
-
-/** * Loop de Inicialização
- */
-function initializeAccountLists(globalBanks, selectedIds, selectedList, availableList, visibleAccounts, noPaymentMsg) {
-    globalBanks.forEach(account => {
-        if (selectedIds.has(account.id)) {
-            selectedList.appendChild(createSelectedAccountItem(account, (e) =>
-                handleRemoveClick(account, e, selectedList, availableList, visibleAccounts, noPaymentMsg)
-            ));
-            visibleAccounts.appendChild(createAccountPrintCard(account));
-        } else {
-            availableList.appendChild(createAvailableAccountItem(account, (e) =>
-                handleAddClick(account, e, selectedList, availableList, visibleAccounts, noPaymentMsg)
-            ));
-        }
-    });
 }
