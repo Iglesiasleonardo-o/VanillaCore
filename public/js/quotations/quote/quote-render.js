@@ -1,13 +1,10 @@
 import { globalState } from "../../vanilla-core/vanilla-global-state.js";
 import { RenderView } from "../../vanilla-core/vanilla-render.js";
 import { fetchQuotation } from "./logic/network.js";
+import { setupCustomerModule } from "./parts/customer/customer-render.js";
 import { setupA4Header } from "./parts/header/header-render.js";
 import { setupNavigationToolbar } from "./parts/toolbar/toolbar-render.js";
-import {
-    createLoadingState,
-    createPrintFAB,
-    createQuotationNotFound
-} from "./quote-viewgen.js";
+import { createA4Sheet, createLoadingState, createQuotationNotFound } from "./quote-viewgen.js";
 
 export async function loadQuotationByURLEvent() {
     const quotationNumber = location.pathname.split('/')[2];
@@ -37,10 +34,16 @@ function renderErrorState(error, quotationNumber) {
 }
 
 function renderSuccessState(quotation, globalBanks) {
+    const customerUi = setupCustomerModule(quotation);
+
     RenderView(
         setupNavigationToolbar(quotation.number), // doesnt have anything that changes, or requires ui state
         // This needs to be inside A4 Section
-        setupA4Header(quotation),
-        // Do customer
+        createA4Sheet(
+            setupA4Header(quotation),
+            customerUi.widget,
+        ),
+        customerUi.modal
+        // Here is where modals should be naturally
     );
 }

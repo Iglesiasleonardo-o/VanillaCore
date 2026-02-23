@@ -59,52 +59,15 @@ export function createQuotationNotFound() {
 }
 
 // 2. A4 DOCUMENT STRUCTURE
-export function createA4Sheet(quotationNumber, headerView) {
+export function createA4Sheet(headerView, customerView) {
     return div({
         id: "a4Page",
         className: "mt-10 mb-20 w-[210mm] min-h-[297mm] bg-white rounded-lg shadow-lg mx-auto p-12 border border-gray-200 border-t"
     }).Append(
         headerView,
-        createCustomerAndTitleSection(quotationNumber),
-        createProductManagerButton(),
-        createItemsTable(),
-    );
-}
-
-// 4. CUSTOMER & TITLE SECTION
-function createCustomerAndTitleSection(quotationNumber) {
-    return div({ className: "flex justify-between items-end" }).Append(
-        createCustomerSearchSection(),
-        div({ className: "flex flex-col items-end text-right flex-shrink-0 ml-8" }).Append(
-            h1({ className: "text-3xl font-bold text-gray-900 -mb-1", textContent: "COTAÇÃO" }),
-            p({ id: "quoteNumber", className: "text-lg font-semibold text-blue-600", textContent: `Nº ${quotationNumber}` })
-        )
-    );
-}
-
-function createCustomerSearchSection() {
-    return section({ className: "pt-1 border-t border-gray-300 w-1/2" }).Append(
-        h3({ className: "text-sm font-bold text-gray-500 uppercase tracking-wide", textContent: "Cliente" }),
-        div({ className: "w-full no-print" }).Append(
-            div({ className: "relative mb-2" }).Append(
-                input({
-                    type: "text",
-                    id: "customerSearch",
-                    placeholder: "-- Clique para selecionar ou criar cliente --",
-                    className: "block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-gray-50 cursor-pointer focus:outline-none focus:ring-blue-500 focus:border-blue-500",
-                    readonly: true
-                }),
-                button({
-                    id: "clearCustomerButton",
-                    className: "absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 hidden"
-                }).Append(
-                    RichElement("i", { dataset: { lucide: "x-circle" }, className: "w-5 h-5" })
-                )
-            )
-        ),
-        div({ id: "customerDetails", className: "border-l border-gray-200 pl-2 text-xs text-gray-700 min-h-[100px]" }).Append(
-            p({ className: "text-gray-400", textContent: "Nenhum cliente selecionado." })
-        )
+        customerView,
+        // createProductManagerButton(),
+        // createItemsTable(),
     );
 }
 
@@ -298,24 +261,3 @@ function createPaymentTermsControls() {
         )
     );
 }
-
-// 7. UTILITIES
-export function createPrintFAB() {
-    return div({
-        id: "fabPrintButtonWrapper",
-        className: "group no-print fixed bottom-6 right-6 z-40"
-    }).Append(
-        button({
-            id: "fabPrintButton",
-            className: "w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 transition-transform duration-200 hover:scale-105",
-            onclick: () => window.print()
-        }).Append(
-            RichElement("i", { dataset: { lucide: "printer" }, className: "w-6 h-6" })
-        ),
-        span({
-            className: "sidebar-tooltip absolute right-full top-1/2 -translate-y-1/2 mr-4 px-3 py-1.5 bg-gray-700 text-white text-sm rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50",
-            textContent: "Imprimir Cotação"
-        })
-    );
-}
-

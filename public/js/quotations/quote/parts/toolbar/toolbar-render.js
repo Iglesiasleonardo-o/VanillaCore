@@ -1,5 +1,5 @@
 import { createLiveState } from '../../../../vanilla-core/vanilla-livestate.js';
-import { executeSave } from './logic/network.js';
+import { executeSave } from './logic/toolbar-network.js';
 import { createNavigationHeader } from './toolbar-viewgen.js';
 
 export function setupNavigationToolbar(quotationNumber) {

@@ -12,8 +12,16 @@ export function RenderView() {
     for (const view of arguments) {
         container.appendChild(view);
     }
-    
+
     updateLucideIcons();
+}
+
+export function AppendToMain() {
+    const container = $("main-wrapper");
+
+    for (const view of arguments) {
+        container.appendChild(view);
+    }
 }
 
 export function updateLucideIcons() {
