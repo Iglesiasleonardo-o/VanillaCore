@@ -1,6 +1,6 @@
 import { createCustomerState } from "./logic/customer-data-state.js";
 import { shouldSearch, searchCustomersDatabase } from "./logic/customer-network.js";
-import { createCustomerSection, createCustomerModal, createEmptyState, createDetailsContent, createSearchItem, createCloseDropdownItem } from "./customer-viewgen.js";
+import { CustomerSection, CustomerModal, EmptyState, DetailsContent, SearchItem, CloseDropdownItem } from "./customer-viewgen.js";
 
 export function setupCustomerModule(quotation) {
     const initialCustomer = quotation.customer || {};
@@ -9,8 +9,8 @@ export function setupCustomerModule(quotation) {
     const state = createCustomerState(initialCustomer);
     const events = setupEvents(state);
 
-    const mainUI = createCustomerSection(quotationNumber, events);
-    const modalUI = createCustomerModal(events);
+    const mainUI = CustomerSection(quotationNumber, events);
+    const modalUI = CustomerModal(events);
 
     observeState(state, mainUI.views, modalUI.views);
 
@@ -33,11 +33,11 @@ function observeState(
     // 2. EXPLICIT SYNC TRIGGER: Only updates the A4 card when we tell it to.
     state.on("syncTrigger", () => {
         if (state.name) {
-            detailsContainer.replaceChildren(createDetailsContent(state));
+            detailsContainer.replaceChildren(DetailsContent(state));
             clearBtn.classList.remove('hidden');
             searchInput.placeholder = `Selecionado: ${state.name}`;
         } else {
-            detailsContainer.replaceChildren(createEmptyState());
+            detailsContainer.replaceChildren(EmptyState());
             clearBtn.classList.add('hidden');
             searchInput.placeholder = "-- Clique para selecionar ou criar cliente --";
         }
@@ -94,7 +94,7 @@ function observeState(
             activeList.classList.remove('hidden');
 
             results.forEach(customer => {
-                activeList.appendChild(createSearchItem(customer, (selectedData) => {
+                activeList.appendChild(SearchItem(customer, (selectedData) => {
                     Object.assign(state, {
                         name: selectedData.name || "",
                         nuit: selectedData.nuit || "",
@@ -107,7 +107,7 @@ function observeState(
                 }));
             });
 
-            activeList.appendChild(createCloseDropdownItem(() => {
+            activeList.appendChild(CloseDropdownItem(() => {
                 state.searchResults = [];
             }));
 

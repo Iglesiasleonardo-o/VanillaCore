@@ -1,24 +1,24 @@
 import { a, button, div, h1, header, RichElement, span } from "../../../../shared/viewgencore.js";
 
-export function createNavigationHeader(quotationNumber, events) {
+export function NavigationHeader(quotationNumber, events) {
     const views = {}; // 1. Create the empty container for our references
 
     const root = header({
         id: "mainHeader",
         className: "sticky top-0 md:px-8 md:pb-8 bg-gray-100 border-gray-200 z-30 pt-4 md:pt-8 pb-6 flex flex-col md:flex-row items-center justify-between gap-4 border-b border-gray-200"
     }).Append(
-        createBackLink(),
-        createPageTitle(quotationNumber),
+        BackLink(),
+        PageTitle(quotationNumber),
         // 2. Pass the views object down so the helper can attach buttons to it
-        createActionToolbar(events, views),
-        createPrintFAB(events)
+        ActionToolbar(events, views),
+        PrintFAB(events)
     );
 
     // 3. Return both the fully built HTML and the captured references
     return { root, views };
 }
 
-function createBackLink() {
+function BackLink() {
     return div({ className: "md:flex-1" }).Append(
         a({
             href: "/cotacoes",
@@ -30,13 +30,13 @@ function createBackLink() {
     );
 }
 
-function createPageTitle(quotationNumber) {
+function PageTitle(quotationNumber) {
     return div({ className: "md:flex-1 md:text-center" }).Append(
         h1({ className: "text-3xl font-bold text-gray-800", textContent: `Cotação Nº ${quotationNumber}` })
     );
 }
 
-function createActionToolbar(events, views) {
+function ActionToolbar(events, views) {
     return div({ className: "md:flex-1 flex md:justify-end" }).Append(
         div({ className: "flex items-center gap-3" }).Append(
             button({
@@ -59,12 +59,12 @@ function createActionToolbar(events, views) {
             )),
 
             // Pass views down one more level for the dropdown menu
-            createOptionsDropdown(events, views)
+            OptionsDropdown(events, views)
         )
     );
 }
 
-function createOptionsDropdown(events, views) {
+function OptionsDropdown(events, views) {
     return div({ className: "dropdown relative no-print inline-block" }).Append(
         // Gatilho: 3 pontos
         button({
@@ -92,7 +92,7 @@ function createOptionsDropdown(events, views) {
     );
 }
 
-function createPrintFAB(events) {
+function PrintFAB(events) {
     return div({
         id: "fabPrintButtonWrapper",
         className: "group no-print fixed bottom-6 right-6 z-40"

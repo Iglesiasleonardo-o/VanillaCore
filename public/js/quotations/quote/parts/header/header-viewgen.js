@@ -1,6 +1,6 @@
 import { div, h2, header, img, input, option, p, RichElement, select, span } from "../../../../shared/viewgencore.js";
 
-export function createHeaderViews(quotation, events) {
+export function HeaderView(quotation, events) {
     const { issuer, metadata } = quotation;
 
     // 1. Declare local references
@@ -8,7 +8,7 @@ export function createHeaderViews(quotation, events) {
 
     // 2. The Unbroken Tree (Captured Inline)
     const root = header({ className: "flex justify-between items-start border-gray-200" }).Append(
-        createCompanyInfo(issuer),
+        CompanyInfo(issuer),
         div({ className: "flex flex-col items-end text-right" }).Append(
             img({
                 src: "../../../img/inovitek-logo.svg", className: "w-56 object-contain mb-4",
@@ -16,12 +16,12 @@ export function createHeaderViews(quotation, events) {
             }),
             div({ className: "mt-0 space-y-1 text-sm" }).Append(
                 // Data Row
-                createMetadataRow("Data:",
+                MetadataRow("Data:",
                     (printDate = span({ className: "print-only hidden" })),
                     (dateInput = input({ type: "date", onchange: events.onDateChange, className: "no-print text-sm border-gray-300 rounded-md py-0 px-1 text-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500" }))
                 ),
                 // Validade Row
-                createMetadataRow("Válida até:",
+                MetadataRow("Válida até:",
                     (printExpiry = span({ className: "print-only hidden" })),
                     div({ className: "no-print -mt-1.5" }).Append(
                         (validitySelect = select({ onchange: (e) => events.onValidityChange(e, otherInput), className: "w-full text-sm border-gray-300 rounded-md py-0.5 px-2 focus:outline-none focus:ring-1 focus:ring-blue-500" }).Append(
@@ -36,7 +36,7 @@ export function createHeaderViews(quotation, events) {
                     )
                 ),
                 // Vendedor Row
-                createMetadataRow("Vendedor:",
+                MetadataRow("Vendedor:",
                     (sellerSpan = span({ className: "text-gray-600" }))
                 )
             )
@@ -47,7 +47,7 @@ export function createHeaderViews(quotation, events) {
 }
 
 // --- STATIC HELPERS ---
-function createCompanyInfo(issuer) {
+function CompanyInfo(issuer) {
     return div({ className: "text-xs text-gray-700" }).Append(
         h2({ className: "font-bold text-lg text-gray-900 mb-2", textContent: issuer.name }),
         p({ textContent: issuer.address }),
@@ -58,7 +58,7 @@ function createCompanyInfo(issuer) {
     );
 }
 
-function createMetadataRow(label, ...children) {
+function MetadataRow(label, ...children) {
     return div({ className: "grid grid-cols-2 gap-2" }).Append(
         RichElement("strong", { className: "text-gray-700", textContent: label }),
         div({ className: "text-gray-600" }).Append(...children)

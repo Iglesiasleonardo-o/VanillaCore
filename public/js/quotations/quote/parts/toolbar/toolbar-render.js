@@ -1,6 +1,6 @@
 import { LiveState } from '../../../../vanilla-core/vanilla-livestate.js';
 import { executeSave } from './logic/toolbar-network.js';
-import { createNavigationHeader } from './toolbar-viewgen.js';
+import { NavigationHeader } from './toolbar-viewgen.js';
 
 export function setupNavigationToolbar(quotationNumber) {
     // 1. The Source of Truth (Only dynamic data)
@@ -11,7 +11,7 @@ export function setupNavigationToolbar(quotationNumber) {
     const events = setupEvents(state);
 
     // 2. Pass static data directly to ViewGen
-    const { root, views } = createNavigationHeader(quotationNumber, events);
+    const { root, views } = NavigationHeader(quotationNumber, events);
 
     observeState(state, views);
 

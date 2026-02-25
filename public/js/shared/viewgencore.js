@@ -15,8 +15,8 @@ const tags = [
 
 const HTMLElements = {};
 
-const Append = function (...args) {
-    this.append(...args);
+const Append = function () {
+    this.append(...arguments);
     return this;
 };
 
@@ -30,10 +30,11 @@ export function RichElement(tagName, attributes = {}) {
     const element = document.createElement(tagName);
 
     for (const key in attributes) {
-        if ((key === 'style' || key === 'dataset') && typeof attributes[key] === 'object') {
-            Object.assign(element[key], attributes[key]);
+        const value = attributes[key];
+        if ((key === 'style' || key === 'dataset') && typeof value === 'object') {
+            Object.assign(element[key], value);
         } else {
-            element[key] = attributes[key];
+            element[key] = value;
         }
     }
 

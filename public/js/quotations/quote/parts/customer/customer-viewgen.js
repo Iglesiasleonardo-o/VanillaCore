@@ -1,13 +1,10 @@
 import { button, div, footer, form, h1, h2, h3, header, input, label, p, RichElement, section, span, textarea, ul, li } from "../../../../shared/viewgencore.js";
 
-// ==========================================
-// 1. MAIN UI WIDGET
-// ==========================================
-export function createCustomerSection(quotationNumber, events) {
+export function CustomerSection(quotationNumber, events) {
     const views = {};
 
     const root = div({ className: "flex justify-between items-end" }).Append(
-        createCustomerSearchSection(events, views),
+        CustomerSearchSection(events, views),
 
         // Static Title Block
         div({ className: "flex flex-col items-end text-right flex-shrink-0 ml-8" }).Append(
@@ -19,7 +16,7 @@ export function createCustomerSection(quotationNumber, events) {
     return { root, views };
 }
 
-function createCustomerSearchSection(events, views) {
+function CustomerSearchSection(events, views) {
     return section({ className: "pt-1 border-t border-gray-300 w-1/2" }).Append(
         h3({ className: "text-sm font-bold text-gray-500 uppercase tracking-wide", textContent: "Cliente" }),
         div({ className: "w-full no-print" }).Append(
@@ -40,7 +37,7 @@ function createCustomerSearchSection(events, views) {
             )
         ),
         (views.detailsContainer = div({ className: "border-l border-gray-200 pl-2 text-xs text-gray-700 min-h-[100px]" }).Append(
-            createEmptyState()
+            EmptyState()
         ))
     );
 }
@@ -48,7 +45,7 @@ function createCustomerSearchSection(events, views) {
 // ==========================================
 // 2. MODAL FORM UI
 // ==========================================
-export function createCustomerModal(events) {
+export function CustomerModal(events) {
     const views = {};
 
     const root = (views.modalOverlay = div({
@@ -220,11 +217,11 @@ export function createCustomerModal(events) {
 // ==========================================
 // 3. STATIC HELPERS
 // ==========================================
-export function createEmptyState() {
+export function EmptyState() {
     return p({ className: 'text-gray-400', textContent: 'Nenhum cliente selecionado.' });
 }
 
-export function createDetailsContent(customerState) {
+export function DetailsContent(customerState) {
     return div().Append(
         h2({ className: 'font-bold text-lg text-gray-900', textContent: customerState.name }),
         p({ className: 'text-gray-600', textContent: customerState.address || 'Sem endereço' }),
@@ -233,7 +230,7 @@ export function createDetailsContent(customerState) {
     );
 }
 
-export function createSearchItem(customer, onSelect) {
+export function SearchItem(customer, onSelect) {
     return li({
         className: 'px-4 py-3 hover:bg-gray-50 cursor-pointer flex flex-col gap-0.5 border-b border-gray-100 last:border-0',
         onclick: () => onSelect(customer)
@@ -244,7 +241,7 @@ export function createSearchItem(customer, onSelect) {
     );
 }
 
-export function createCloseDropdownItem(onClose) {
+export function CloseDropdownItem(onClose) {
     return li({
         className: 'px-4 py-2 bg-gray-100 text-center cursor-pointer border-t border-gray-200 hover:bg-gray-200 transition-colors sticky bottom-0',
         onclick: onClose

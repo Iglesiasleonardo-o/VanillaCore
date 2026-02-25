@@ -1,11 +1,11 @@
-import { createHeaderViews } from "./header-viewgen.js";
+import { HeaderView } from "./header-viewgen.js";
 import { createHeaderState } from "./logic/header-data-state.js";
 import { calculateExpiryDate, formatToDisplayDate } from "./logic/header-math.js";
 
 export function setupA4Header(quotation) {
     const state = createHeaderState(quotation);
     const events = setupEvents(state);
-    const { root, views } = createHeaderViews(quotation, events);
+    const { root, views } = HeaderView(quotation, events);
     observeState(state, views);
     return root;
 }
