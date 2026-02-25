@@ -78,12 +78,20 @@ body.modal-open #modalContainer {
     opacity: 1;
 }
 
-/* --- ESTILOS DE IMPRESSÃO --- */
 @media print {
-    body {
-        background-color: #fff;
-        height: auto;
-        overflow: visible;
+
+    html,
+    body,
+    main,
+    #app,
+    .overflow-y-auto,
+    .overflow-x-auto {
+        height: auto !important;
+        min-height: auto !important;
+        overflow: visible !important;
+        position: static !important;
+        display: block !important;
+        background: #fff !important;
     }
 
     #sidebarNav,
@@ -92,34 +100,33 @@ body.modal-open #modalContainer {
     #paymentMethodModal,
     #mainHeader,
     #breadcrumbs,
-    #fabPrintButtonWrapper {
+    #fabPrintButtonWrapper,
+    .no-print {
         display: none !important;
     }
 
     #mainContent {
-        margin-left: 0;
-        padding: 0;
-        height: auto;
-        overflow-y: visible !important;
+        margin-left: 0 !important;
+        padding: 0 !important;
+        height: auto !important;
+        overflow: visible !important;
     }
 
     #app {
         padding: 0 !important;
-        height: auto;
-        overflow: visible;
     }
 
     #a4Page {
-        width: 100%;
-        min-height: auto;
-        height: auto;
-        margin: 0;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
         padding: 0 !important;
-        box-shadow: none;
-        border: none;
+        border: none !important;
+        box-shadow: none !important;
+        height: auto !important;
+        min-height: 0 !important;
     }
 
-    /* Compactação Vertical para Impressão */
     #a4Page header .flex-col.items-end img {
         margin-bottom: 0.5rem !important;
     }
@@ -141,25 +148,26 @@ body.modal-open #modalContainer {
     }
 
     .my-6 {
-        margin-top: 1rem !important;
-        margin-bottom: 1rem !important;
+        margin-block: 1rem !important;
     }
 
     #quoteItemsTableBody td,
     thead th.p-3 {
-        padding-top: 0.25rem !important;
-        padding-bottom: 0.25rem !important;
-        padding-left: 0.5rem !important;
-        padding-right: 0.5rem !important;
+        padding: 0.25rem 0.5rem !important;
     }
 
     #quoteItemsTableBody td.p-3.align-top.text-center {
-        padding-left: 0.25rem !important;
-        padding-right: 0.25rem !important;
+        padding-inline: 0.25rem !important;
     }
 
-    .no-print {
-        display: none !important;
+    table {
+        page-break-inside: auto;
+    }
+
+    tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        page-break-after: auto;
     }
 
     .print-only {
@@ -170,7 +178,6 @@ body.modal-open #modalContainer {
         white-space: pre-line !important;
     }
 
-    /* Cores e Bordas */
     .text-gray-800 {
         color: #1f2937 !important;
     }
@@ -202,6 +209,7 @@ body.modal-open #modalContainer {
     .border-b {
         border-bottom-width: 1px !important;
     }
+
 }
 
 @page {

@@ -1,3 +1,4 @@
+// logic/items-math.js
 export function validateStepperValue(value, min = 0, max = 1000000) {
     const num = parseFloat(value);
     if (isNaN(num)) return min;
@@ -6,7 +7,6 @@ export function validateStepperValue(value, min = 0, max = 1000000) {
     return num;
 }
 
-// logic/items-math.js
 export function calculateTotals(items, vatRate = 16) {
     const subtotal = items.reduce((acc, item) => {
         const discount = item.discount || 0;

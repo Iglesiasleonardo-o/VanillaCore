@@ -26,26 +26,16 @@ export function createItemsState(initialItems = []) {
 }
 
 export function getItemsData() {
-    // Just map it to ensure the line totals and math are perfectly fresh for the DB
-    const dbItems = itemsState.items.map(item => {
-        const discountMultiplier = 1 - ((item.discount || 0) / 100);
-        const lineSubtotal = item.unitPrice * item.quantity * discountMultiplier;
-        const taxRate = 16; 
-        const taxAmount = lineSubtotal * (taxRate / 100);
-        
-        return {
+    return {
+        items: itemsState.items.map(item => ({
             ref: item.ref,
             name: item.name,
             quantity: item.quantity,
-            unitPrice: item.unitPrice,
+            unitPrice: item.unitPrice, // Nome único em todo o sistema
             discount: item.discount || 0,
-            taxRate: taxRate,
-            totalLine: parseFloat((lineSubtotal + taxAmount).toFixed(2)) 
-        };
-    });
-
-    return { 
-        items: dbItems, 
-        totals: itemsState.totals 
+            taxRate: 16,
+            totalLine: parseFloat(((item.unitPrice * item.quantity) * (1 - (item.discount || 0) / 100) * 1.16).toFixed(2))
+        })),
+        totals: itemsState.totals
     };
 }
