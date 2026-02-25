@@ -1,10 +1,10 @@
-import { createLiveState } from '../../../../vanilla-core/vanilla-livestate.js';
+import { LiveState } from '../../../../vanilla-core/vanilla-livestate.js';
 import { executeSave } from './logic/toolbar-network.js';
 import { createNavigationHeader } from './toolbar-viewgen.js';
 
 export function setupNavigationToolbar(quotationNumber) {
     // 1. The Source of Truth (Only dynamic data)
-    const state = createLiveState({
+    const state = LiveState({
         saveStatus: "idle"
     });
 

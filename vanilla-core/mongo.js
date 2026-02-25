@@ -1,6 +1,7 @@
 import { MongoClient } from 'mongodb';
 
-export const client = new MongoClient(process.env.DB_URI || "mongodb://127.0.0.1:27017/vanillacore");
+const URI = "mongodb://127.0.0.1:27017/vanillacore" || process.env.DB_URI;
+export const client = new MongoClient(URI);
 await connectToDatabase();
 const database = client.db();
 
@@ -10,7 +11,7 @@ export const users = database.collection('users');
 
 async function connectToDatabase() {
     try {
-        console.log('Connecting to', process.env.DB_URI);
+        console.log('Connecting to', URI);
         await client.connect();
         console.log('Successfully connected to MongoDB!');
     } catch (error) {

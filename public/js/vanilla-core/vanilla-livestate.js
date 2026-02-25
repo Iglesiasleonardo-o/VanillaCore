@@ -1,4 +1,4 @@
-export function createLiveState(data) {
+export function LiveState(data) {
     const listeners = {};
 
     const notify = (k, v) => {
@@ -26,7 +26,7 @@ export function createLiveState(data) {
     });
 }
 
-export function createLiveArrayState(data) {
+export function LiveArrayState(data) {
     // We initialize the listeners as empty objects {} instead of objects-of-arrays
     const listeners = { set: {}, add: {}, addMany: {}, remove: {}, removeMany: {} };
 

@@ -1,4 +1,4 @@
-import { createLiveState } from "../../../../../vanilla-core/vanilla-livestate.js";
+import { LiveState } from "../../../../../vanilla-core/vanilla-livestate.js";
 
 let headerState;
 
@@ -6,7 +6,7 @@ export function createHeaderState(quotation) {
     // Get today's date in YYYY-MM-DD format
     const today = new Date().toISOString().split('T')[0];
 
-    headerState = createLiveState({
+    headerState = LiveState({
         // Fallback to today if quotation.issueDate is missing or old
         issueDate: quotation.issueDate || today,
         expiryDate: quotation.expiryDate || "",

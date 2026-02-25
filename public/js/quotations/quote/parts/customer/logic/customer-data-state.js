@@ -1,9 +1,9 @@
-import { createLiveState } from "../../../../../vanilla-core/vanilla-livestate.js";
+import { LiveState } from "../../../../../vanilla-core/vanilla-livestate.js";
 
 let customerState;
 
 export function createCustomerState(initialCustomer = {}) {
-    customerState = createLiveState({
+    customerState = LiveState({
         // --- 1. Form Data (Directly bound, ready for UPSERT) ---
         name: initialCustomer.name || "",
         nuit: initialCustomer.nuit || "",

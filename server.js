@@ -13,3 +13,5 @@ const HOST = "localhost";
 server.listen(PORT, HOST, () => {
     console.log(`Server running at http://${HOST}:${PORT}/`);
 });
+
+// npx @tailwindcss/cli -i ./tailwind/input.css -o ./public/css/style.css --watch

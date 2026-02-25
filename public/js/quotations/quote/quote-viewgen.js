@@ -4,7 +4,7 @@ import {
     table, thead, tbody, tr, th, td, RichElement
 } from "../../shared/viewgencore.js";
 
-export function createLoadingState() {
+export function LoadingState() {
     return div({
         id: "loadingScreen",
         className: "flex flex-col items-center justify-center w-full min-h-screen"
@@ -19,7 +19,7 @@ export function createLoadingState() {
     );
 }
 
-export function createQuotationNotFound() {
+export function QuotationNotFound() {
     return div({
         id: "notFoundState",
         className: "flex flex-col items-center justify-center w-full min-h-screen bg-gray-50 px-4 text-center"
@@ -59,205 +59,21 @@ export function createQuotationNotFound() {
 }
 
 // 2. A4 DOCUMENT STRUCTURE
-export function createA4Sheet(headerView, customerView) {
+export function A4Sheet(headerView, customerView, itemsView) {
     return div({
         id: "a4Page",
         className: "mt-10 mb-20 w-[210mm] min-h-[297mm] bg-white rounded-lg shadow-lg mx-auto p-12 border border-gray-200 border-t"
     }).Append(
         headerView,
         customerView,
-        // createProductManagerButton(),
-        // createItemsTable(),
-    );
-}
-
-// 5. PRODUCTS & TABLES
-function createProductManagerButton() {
-    return div({ className: "my-6 text-center no-print" }).Append(
-        button({
-            id: "manageProductsButton",
-            className: "w-full px-6 py-3 bg-blue-600 text-white text-base font-medium rounded-lg shadow-md hover:bg-blue-700 transition duration-200 flex items-center justify-center gap-2"
-        }).Append(
-            RichElement("i", { dataset: { lucide: "plus-circle" }, className: "w-5 h-5" }),
-            span({ textContent: "Adicionar Produtos à Cotação" })
-        )
-    );
-}
-
-function createItemsTable() {
-    return section({ className: "mt-2" }).Append(
-        table({ className: "w-full text-left text-sm" }).Append(
-            thead({ className: "bg-gray-50 text-gray-700 uppercase tracking-wider" }).Append(
-                tr().Append(
-                    th({ className: "p-3 font-semibold", textContent: "ID" }),
-                    th({ className: "p-3 font-semibold", textContent: "Descrição" }),
-                    th({ className: "p-3 font-semibold text-center w-10", textContent: "Qtd." }),
-                    th({ className: "p-3 font-semibold text-right w-20" }).Append(span({ textContent: "Preço" }), RichElement("br"), span({ textContent: "Unit." })),
-                    th({ className: "p-3 font-semibold text-center w-16" }).Append(span({ textContent: "Desc." }), RichElement("br"), span({ textContent: "(%)" })),
-                    th({ className: "p-3 font-semibold text-center w-16", textContent: "Total" })
-                )
-            ),
-            tbody({ id: "quoteItemsTableBody", className: "divide-y divide-gray-200" }).Append(
-                tr({ id: "emptyRow" }).Append(
-                    td({ colSpan: "7", className: "p-6 text-center text-gray-400", textContent: "Nenhum produto adicionado." })
-                )
+        itemsView.tableWidget,
+        footer({ className: "pt-4 border-t border-gray-200" }).Append(
+            div({ className: "flex justify-between items-start gap-8" }).Append(
+                // Condicoes gerais aqui
+                div({ className: "w-1/2" }).Append(),
+                itemsView.totalsWidget
             )
-        )
-    );
-}
-
-// 6. DOCUMENT FOOTER (Conditions, Totals, Payments)
-export function createDocumentFooter(paymentMethodModal, printEl) {
-    return footer({ className: "pt-4 border-t border-gray-200" }).Append(
-        div({ className: "flex justify-between items-start gap-8" }).Append(
-            createConditionsColumn(), // Left side: Warranty, Notes
-            createTotalsColumn()      // Right side: Math, Discounts
-        ),
-        createPaymentDetailsSection(paymentMethodModal, printEl)
-    );
-}
-
-// --- Footer Sub-Component: General Conditions (Left) ---
-
-function createConditionsColumn() {
-    const generalConditionsPrint = div({ id: "generalConditionsExtraPrint", className: "text-xs text-gray-600 mt-2 print-pre-line print-only hidden" });
-    const warrantyMonthsPrint = span({ id: "warrantyMonthsPrint", textContent: "12" });
-
-    return div({ className: "w-1/2" }).Append(
-        h4({ className: "font-bold text-gray-800 mb-2", textContent: "Condições Gerais" }),
-        div({ className: "text-xs text-gray-600 space-y-1" }).Append(
-            // Warranty Input (Editable)
-            div({ className: "no-print flex items-center gap-1" }).Append(
-                span({ textContent: "1. Garantia de" }),
-                input({
-                    type: "text", id: "warrantyMonths", value: "12", className: "w-12 border border-gray-300 rounded-md py-0.5 px-1 text-center text-xs",
-                    oninput: e => { warrantyMonthsPrint.textContent = e.target.value; }
-                }),
-                span({ textContent: "meses contra defeitos de fabrico." })
-            ),
-            // Warranty Text (Print)
-            p({ className: "print-only hidden" }).Append(
-                span({ textContent: "1. Garantia de " }),
-                warrantyMonthsPrint,
-                span({ textContent: " meses contra defeitos de fabrico." })
-            ),
-            p({ textContent: "2. IVA à taxa legal em vigor (16%)." })
-        ),
-        // Extra Conditions Textarea
-        div({ className: "mt-2 no-print" }).Append(
-            RichElement("label", { for: "generalConditionsExtra", className: "block text-xs font-medium text-gray-600 mb-1", textContent: "Condições Adicionais" }),
-            textarea({
-                id: "generalConditionsExtra", rows: "3", className: "block w-full text-xs border border-gray-300 rounded-md shadow-sm py-1.5 px-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500", placeholder: "Acrescente aqui outras condições...",
-                oninput: e => { generalConditionsPrint.textContent = e.target.value; }
-            })
-        ),
-        generalConditionsPrint
-    );
-}
-
-// --- Footer Sub-Component: Totals (Right) ---
-function createTotalsColumn() {
-    return div({ className: "w-1/2 max-w-xs text-sm" }).Append(
-        div({ className: "space-y-2" }).Append(
-            // Global Discount Toggle
-            div({ className: "flex items-center justify-between border-b border-gray-200 pb-2 mb-2 no-print" }).Append(
-                div({ className: "flex items-center gap-2" }).Append(
-                    input({
-                        type: "checkbox", id: "toggleGlobalDiscount", className: "w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500",
-                        onchange: e => {
-                            const input = document.getElementById('globalDiscountInput');
-                            if (input) input.disabled = !e.target.checked;
-                        }
-                    }),
-                    RichElement("label", { for: "toggleGlobalDiscount", className: "text-xs font-medium text-gray-600 select-none cursor-pointer", textContent: "Desconto Global" })
-                ),
-                div({ className: "flex items-center gap-1" }).Append(
-                    input({ type: "number", id: "globalDiscountInput", placeholder: "0", min: "0", max: "100", disabled: true, className: "w-12 text-right text-xs border border-gray-300 rounded py-0.5 px-1 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-400" }),
-                    span({ className: "text-xs text-gray-500", textContent: "%" })
-                )
-            ),
-            // Calculations
-            createTotalRow("Subtotal:", "subtotalAmount", "font-medium text-gray-800"),
-            createTotalRow("IVA (16%):", "vatAmount", "font-medium text-gray-800"),
-            div({ className: "flex justify-between border-t border-gray-300 pt-2 mt-2" }).Append(
-                span({ className: "font-bold text-lg text-gray-900", textContent: "Total:" }),
-                div().Append(span({ id: "totalAmount", className: "font-bold text-lg text-blue-600", textContent: "0,00" }))
-            )
-        )
-    );
-}
-
-function createTotalRow(label, valueId, valueClass) {
-    return div({ className: "flex justify-between" }).Append(
-        span({ className: "text-gray-600", textContent: label }),
-        div().Append(span({ id: valueId, className: valueClass, textContent: "0,00" }))
-    );
-}
-
-// --- Footer Sub-Component: Payment Details (Bottom) ---
-function createPaymentDetailsSection(paymentMethodModal, paymentMethodsPrint) {
-    return div({ className: "mt-8 pt-8 border-t border-gray-200" }).Append(
-        h4({ className: "font-bold text-gray-800 mb-1", textContent: "Métodos de Pagamento" }),
-        createPaymentTermsControls(),
-        div({ className: "mb-4 no-print" }).Append(
-            button({
-                id: "managePaymentMethodsButton",
-                className: "w-full px-6 py-3 bg-gray-100 text-gray-700 text-base font-medium rounded-lg shadow-sm border border-gray-300 hover:bg-gray-200 transition duration-200 flex items-center justify-center gap-2",
-                onclick: () => { paymentMethodModal.classList.remove('hidden'); }
-            }).Append(
-                RichElement("i", { dataset: { lucide: "wallet" }, className: "w-5 h-5" }),
-                span({ textContent: "Gerir Contas Bancárias" })
-            )
-        ),
-        paymentMethodsPrint
-    );
-}
-
-// Funções puras para criar as referências
-
-function createPaymentTermsControls() {
-    // Elements need to be defined before return so the closure works
-    const paymentTermsPrint = span({
-        id: "paymentTermsPrintValue", className: "print-only hidden",
-        textContent: "Pronto Pagamento"
-    });
-
-    const otherTermsInput = input({
-        type: "text", id: "paymentTermsOther", className: "hidden mt-1 block w-full max-w-xs text-sm border border-gray-300 rounded-md py-1.5 px-2", placeholder: "Especificar termos...",
-        oninput: e => { paymentTermsPrint.textContent = e.target.value; }
-    });
-
-    const paymentSelect = select({
-        id: "paymentTerms", className: "block w-full max-w-xs text-sm border border-gray-300 rounded-md shadow-sm py-1.5 px-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500",
-        onchange: e => {
-            if (e.target.value === 'outro') {
-                otherTermsInput.classList.remove('hidden');
-                otherTermsInput.focus();
-                otherTermsInput.select();
-                paymentTermsPrint.textContent = otherTermsInput.value;
-            } else {
-                otherTermsInput.classList.add('hidden');
-                paymentTermsPrint.textContent = e.target.value;
-            }
-        }
-    }).Append(
-        option({ value: "Pronto Pagamento", selected: true, textContent: "Pronto Pagamento" }),
-        option({ value: "15 Dias", textContent: "15 Dias" }),
-        option({ value: "30 Dias", textContent: "30 Dias" }),
-        option({ value: "outro", textContent: "Outro (especificar)" })
-    );
-
-    return div({ className: "mb-2" }).Append(
-        div({ className: "mb-3 no-print" }).Append(
-            RichElement("label", { for: "paymentTerms", className: "block text-sm font-medium text-gray-700 mb-1", textContent: "Termos de Pagamento" }),
-            paymentSelect,
-            otherTermsInput
-        ),
-        div({ id: "paymentTermsPrint", className: "text-xs text-gray-600 space-y-1" }).Append(
-            p().Append(
-                RichElement("strong", { textContent: "Termos de Pagamento: " }),
-                paymentTermsPrint
-            )
+            // Metodos de pagamento aqui
         )
     );
 }
