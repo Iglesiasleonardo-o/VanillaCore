@@ -25,3 +25,11 @@ export function calculateTotals(items, vatRate = 16) {
         total: parseFloat((subtotal + vatAmount).toFixed(2))
     };
 }
+
+// Adicione em logic/items-math.js
+export function calculateLineTotal(unitPrice, quantity, discount = 0) {
+    const price = Number(unitPrice) || 0;
+    const qty = Number(quantity) || 1;
+    const disc = Number(discount) || 0;
+    return (price * qty) * (1 - (disc / 100));
+}

@@ -1,22 +1,15 @@
-import { button, div, header, input, label, span, table, tbody, td, th, thead, tr, img, section, RichElement } from "../../../../shared/viewgencore.js";
+import { button, div, header, input, label, span, table, tbody, td, th, thead, tr, img, section, Icon } from "../../../../shared/viewgencore.js";
 
 const TRASH_ICON = "M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16";
 const PLUS_ICON = "M12 4v16m8-8H4";
 const CLOSE_ICON = "M6 18L18 6M6 6l12 12";
 
-export function createIcon(pathData, className) {
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("class", className);
-    svg.setAttribute("fill", "none");
-    svg.setAttribute("viewBox", "0 0 24 24");
-    svg.setAttribute("stroke", "currentColor");
-    svg.setAttribute("stroke-width", "2");
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", pathData);
-    path.setAttribute("stroke-linecap", "round");
-    path.setAttribute("stroke-linejoin", "round");
-    svg.appendChild(path);
-    return svg;
+// OTIMIZAÇÃO: Formatadores instanciados apenas UMA VEZ em memória
+const NUMBER_FORMAT = new Intl.NumberFormat('pt-MZ', { minimumFractionDigits: 2 });
+
+export function updateActionBtnUI(btnEl, isAdded) {
+    btnEl.className = `mt-1 flex items-center justify-center w-8 h-8 rounded-lg transition-all shadow-sm ${isAdded ? 'bg-red-50 text-red-500 hover:bg-red-500 hover:text-white border border-red-100' : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'}`;
+    btnEl.replaceChildren(Icon(isAdded ? TRASH_ICON : PLUS_ICON, "w-5 h-5"));
 }
 
 // --- WIDGETS PRINCIPAIS ---
@@ -26,7 +19,7 @@ export function ItemsTableWidget(events) {
         className: "w-full py-3 bg-gray-50 text-blue-600 border border-dashed border-gray-300 rounded-lg font-medium text-sm hover:bg-blue-50 transition-colors flex items-center justify-center gap-2",
         onclick: events.onOpenModal
     });
-    btnAdd.appendChild(createIcon(PLUS_ICON, "w-5 h-5"));
+    btnAdd.appendChild(Icon(PLUS_ICON, "w-5 h-5"));
     btnAdd.appendChild(span({ textContent: "Adicionar Produtos" }));
 
     const root = section({ className: "mt-8" }).Append(
@@ -73,10 +66,10 @@ export function TotalsWidget(events) {
 }
 
 // --- SUBCONENTES BASE ---
-function createStepperViews(widthClass) {
+function createStepperViews(widthClass, initialValue = 0) {
     const views = {};
-    views.input = input({ type: "number", className: `${widthClass} text-center text-sm font-medium text-gray-700 border-none focus:ring-0 p-0 h-full appearance-none print:hidden` });
-    views.print = span({ className: "hidden print:inline-block w-full text-center text-sm font-medium" });
+    views.input = input({ type: "number", value: initialValue, className: `${widthClass} text-center text-sm font-medium text-gray-700 border-none focus:ring-0 p-0 h-full appearance-none print:hidden` });
+    views.print = span({ className: "hidden print:inline-block w-full text-center text-sm font-medium", textContent: initialValue });
     views.btnMinus = button({ className: "px-2 h-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors text-sm font-bold rounded-l-md border-r border-gray-100 print:hidden", textContent: "−" });
     views.btnPlus = button({ className: "px-2 h-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors text-sm font-bold rounded-r-md border-l border-gray-100 print:hidden", textContent: "+" });
 
@@ -88,20 +81,18 @@ function createStepperViews(widthClass) {
 // --- COMPONENTES DE LINHA ---
 export function QuoteRow(item, formattedUnitPrice) {
     const views = {};
-    const qtyStepper = createStepperViews("w-16");
-    const discStepper = createStepperViews("w-10");
-    views.qty = qtyStepper.views;
-    views.disc = discStepper.views;
+    views.qty = createStepperViews("w-16", item.quantity).views;
+    views.disc = createStepperViews("w-10", item.discount || 0).views;
     views.lblTotal = span({ className: "font-bold text-gray-900" });
     views.btnRemove = button({ className: "flex items-center justify-center w-7 h-7 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all no-print" });
-    views.btnRemove.appendChild(createIcon(TRASH_ICON, "w-4 h-4"));
+    views.btnRemove.appendChild(Icon(TRASH_ICON, "w-4 h-4"));
 
     const root = tr({ className: "hover:bg-gray-50 transition-colors text-sm" }).Append(
         td({ className: "px-4 py-3 text-xs text-gray-500 align-middle", textContent: item.ref }),
         td({ className: "px-4 py-3 align-middle" }).Append(div({ className: "font-medium text-gray-900", textContent: item.name })),
-        td({ className: "px-4 py-3 align-middle" }).Append(qtyStepper.root),
+        td({ className: "px-4 py-3 align-middle" }).Append(views.qty.input.parentElement),
         td({ className: "px-4 py-3 text-right text-gray-600 align-middle", textContent: formattedUnitPrice }),
-        td({ className: "px-4 py-3 align-middle" }).Append(discStepper.root),
+        td({ className: "px-4 py-3 align-middle" }).Append(views.disc.input.parentElement),
         td({ className: "px-4 py-3 text-right align-middle" }).Append(div({ className: "flex items-center justify-end gap-3" }).Append(views.lblTotal, views.btnRemove))
     );
 
@@ -111,10 +102,8 @@ export function QuoteRow(item, formattedUnitPrice) {
 
 export function ProductSearchItem(dbProduct) {
     const views = {};
-    const qtyStepper = createStepperViews("w-16");
-    const discStepper = createStepperViews("w-10");
-    views.qty = qtyStepper.views;
-    views.disc = discStepper.views;
+    views.qty = createStepperViews("w-16", 1).views;
+    views.disc = createStepperViews("w-10", 0).views;
     views.lblTotal = span({ className: "text-xs font-bold text-blue-600 mt-1" });
     views.lblStatus = span({ className: "text-[10px] text-blue-600 font-medium px-2 py-0.5 bg-blue-100 rounded mt-1 hidden" });
     views.btnAction = button({});
@@ -127,14 +116,15 @@ export function ProductSearchItem(dbProduct) {
             div().Append(
                 div({ className: "font-medium text-gray-900 text-sm leading-tight mb-1", textContent: dbProduct.name }),
                 div({ className: "flex items-center gap-2" }).Append(
-                    span({ className: "text-xs font-bold text-gray-700 mt-0.5", textContent: new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }).format(dbProduct.unitPrice) }),
+                    // USANDO A CONSTANTE DE NÚMERO GLOBAL (Sem "MT")
+                    span({ className: "text-xs font-bold text-gray-700 mt-0.5", textContent: NUMBER_FORMAT.format(dbProduct.unitPrice) }),
                     span({ className: "text-xs text-gray-500 bg-gray-100/50 px-1 rounded", textContent: dbProduct.ref })
                 )
             )
         ),
         div({ className: "flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto sm:justify-end" }).Append(
-            div({ className: "flex flex-col items-center gap-0.5" }).Append(span({ className: "text-[9px] text-gray-400 uppercase tracking-wide", textContent: "Qtd" }), qtyStepper.root),
-            div({ className: "flex flex-col items-center gap-0.5" }).Append(span({ className: "text-[9px] text-gray-400 uppercase tracking-wide", textContent: "Desc %" }), discStepper.root),
+            div({ className: "flex flex-col items-center gap-0.5" }).Append(span({ className: "text-[9px] text-gray-400 uppercase tracking-wide", textContent: "Qtd" }), views.qty.input.parentElement),
+            div({ className: "flex flex-col items-center gap-0.5" }).Append(span({ className: "text-[9px] text-gray-400 uppercase tracking-wide", textContent: "Desc %" }), views.disc.input.parentElement),
             div({ className: "flex flex-col items-end min-w-[70px]" }).Append(views.lblTotal, views.lblStatus),
             views.btnAction
         )
@@ -148,9 +138,8 @@ export function ProductSearchItem(dbProduct) {
 export function ItemsModal(events) {
     const views = {};
     const btnClose = button({ className: "text-gray-400 hover:text-gray-600", onclick: events.onCloseModal });
-    btnClose.appendChild(createIcon(CLOSE_ICON, "w-6 h-6"));
+    btnClose.appendChild(Icon(CLOSE_ICON, "w-6 h-6"));
 
-    // O fundo preto foi removido conforme solicitado (usando apenas o backdrop e uma cor de fundo muito leve caso o browser não suporte blur)
     const root = (views.modalOverlay = div({
         className: "fixed inset-0 bg-gray-800/10 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50 no-print",
         onclick: events.onCloseModal

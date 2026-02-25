@@ -2,3 +2,4 @@
 * When you click "Adicionar produtos" for the first time it seems like it loads twice
 * Icons should only live inside viewgen and not items-render.js
 * I think there's so much logic that shoul've been inside math.js instead and not all inside render
+* Algorithm seems to be repeating itself many times, should be simpler?

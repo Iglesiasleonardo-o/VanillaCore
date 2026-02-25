@@ -1,6 +1,5 @@
 // logic/items-data-state.js
-import { LiveState, LiveArrayState } from "../../../../../vanilla-core/vanilla-livestate.js";
-import { calculateTotals } from "./items-math.js";
+import { LiveArrayState, LiveState } from "../../../../../vanilla-core/vanilla-livestate.js";
 
 let itemsState;
 
@@ -10,7 +9,7 @@ export function createItemsState(initialItems = []) {
     itemsState = LiveState({
         items: itemsArray,
         globalDiscount: 0,
-        totals: calculateTotals(initialItems),
+        totals: initialItems.totals,
 
         // Transient UI State
         isModalOpen: false,

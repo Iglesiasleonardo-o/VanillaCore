@@ -79,6 +79,17 @@ body.modal-open #modalContainer {
 }
 
 @media print {
+    body {
+        /* Força o navegador a imprimir cores e imagens de fundo */
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Se quiser garantir que um elemento específico (ex: o cabeçalho azul) mantenha a cor */
+    .bg-blue-600 {
+        background-color: #2563eb !important;
+        -webkit-print-color-adjust: exact !important;
+    }
 
     html,
     body,

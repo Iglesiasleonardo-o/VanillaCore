@@ -5,7 +5,7 @@ const delay = (ms) => new Promise(res => setTimeout(res, ms));
 
 export async function loadProductsData(query, offset) {
     // You had an artificial delay in your old code, keeping it here if you still want it for UI smoothing
-    await delay(300);
+    await delay(1000);
 
     try {
         return await fetchProducts(query, offset);

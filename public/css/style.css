@@ -1676,6 +1676,14 @@ body.modal-open #modalContainer {
   opacity: 1;
 }
 @media print {
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .bg-blue-600 {
+    background-color: #2563eb !important;
+    -webkit-print-color-adjust: exact !important;
+  }
   html, body, main, #app, .overflow-y-auto, .overflow-x-auto {
     height: auto !important;
     min-height: auto !important;

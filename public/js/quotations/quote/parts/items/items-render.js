@@ -1,14 +1,10 @@
 import { createItemsState } from "./logic/items-data-state.js";
-import { validateStepperValue, calculateTotals } from "./logic/items-math.js";
+import { validateStepperValue, calculateTotals, calculateLineTotal } from "./logic/items-math.js";
 import { loadProductsData } from "./logic/items-network.js";
-import { ItemsTableWidget, TotalsWidget, ItemsModal, QuoteRow, ProductSearchItem, EmptyTableState, EmptySearchState, LoadingState, BottomLoader, createIcon } from "./items-viewgen.js";
-
-// AQUI
-const TRASH_ICON = "M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16";
-const PLUS_ICON = "M12 4v16m8-8H4";
+import { ItemsTableWidget, TotalsWidget, ItemsModal, QuoteRow, ProductSearchItem, EmptyTableState, EmptySearchState, LoadingState, BottomLoader, updateActionBtnUI } from "./items-viewgen.js";
 
 export function setupItemsModule(quotation) {
-    const draftStates = new Map(); // Guarda qtd/disc do modal antes de adicionar
+    const draftStates = new Map();
     const state = createItemsState(quotation.items || []);
     const events = setupEvents(state, draftStates);
 
@@ -27,8 +23,8 @@ function observeState(state, tableViews, totalsViews, modalViews, events, draftS
     const { lblSubtotal, lblVat, lblTotal, toggleGlobalDiscount, globalDiscountInput } = totalsViews;
     const { modalOverlay, searchInput, listContainer } = modalViews;
 
-    const CURRENCY = new Intl.NumberFormat('pt-MZ', { minimumFractionDigits: 2 });
-    const CURRENCY_SYMBOL = new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' });
+    const CURRENCY = new Intl.NumberFormat('pt-MZ', { minimumFractionDigits: 2 }); // Apenas número
+    const CURRENCY_SYMBOL = new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }); // Com moeda para os totais
 
     const updateStepperUI = (stepperViews, value) => {
         if (stepperViews.input.value !== String(value)) stepperViews.input.value = value;
@@ -38,83 +34,91 @@ function observeState(state, tableViews, totalsViews, modalViews, events, draftS
     const updateQuoteRowUI = (views, item) => {
         updateStepperUI(views.qty, item.quantity);
         updateStepperUI(views.disc, item.discount || 0);
-        const total = (item.unitPrice * item.quantity) * (1 - ((item.discount || 0) / 100));
+        const total = calculateLineTotal(item.unitPrice, item.quantity, item.discount || 0);
+        // Total da linha TEM a moeda (MZN)
         views.lblTotal.textContent = CURRENCY.format(total);
     };
 
     const updateSearchItemUI = (views, dbProduct, cartItem) => {
         const isAdded = !!cartItem;
         const draft = draftStates.get(dbProduct.ref) || { qty: 1, disc: 0 };
-        const currentQty = isAdded ? cartItem.quantity : draft.qty;
-        const currentDisc = isAdded ? cartItem.discount : draft.disc;
-        const total = (dbProduct.unitPrice * currentQty) * (1 - currentDisc / 100);
+        const currentQty = Number(isAdded ? cartItem.quantity : draft.qty);
+        const currentDisc = Number(isAdded ? cartItem.discount : draft.disc);
+
+        const total = calculateLineTotal(dbProduct.unitPrice, currentQty, currentDisc);
 
         updateStepperUI(views.qty, currentQty);
         updateStepperUI(views.disc, currentDisc);
-        views.lblTotal.textContent = CURRENCY.format(total) + " MT";
+
+        // Total da pesquisa TEM a moeda
+        views.lblTotal.textContent = CURRENCY_SYMBOL.format(total);
 
         views.lblStatus.textContent = isAdded ? "No Carrinho" : "";
         views.lblStatus.className = isAdded ? "text-[10px] text-blue-600 font-bold px-1.5 py-0.5 bg-blue-100 rounded mt-1" : "hidden";
 
-        views.btnAction.className = `mt-1 flex items-center justify-center w-8 h-8 rounded-lg transition-all shadow-sm ${isAdded ? 'bg-red-50 text-red-500 hover:bg-red-500 hover:text-white border border-red-100' : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'}`;
-        views.btnAction.replaceChildren(createIcon(isAdded ? TRASH_ICON : PLUS_ICON, "w-5 h-5"));
+        updateActionBtnUI(views.btnAction, isAdded);
     };
 
-    // --- SINCRONIZADOR MESTRE OTIMIZADO ---
-    const syncCartUI = () => {
+    // --- ALGORITMO IN-PLACE OTIMIZADO ---
+    const syncTableUI = () => {
         state.totals = calculateTotals(state.items);
+
+        // Totais finais TÊM a moeda
+        lblSubtotal.textContent = CURRENCY_SYMBOL.format(state.totals.subtotal);
+        lblVat.textContent = CURRENCY_SYMBOL.format(state.totals.vat);
+        lblTotal.textContent = CURRENCY_SYMBOL.format(state.totals.total);
 
         if (state.items.length === 0) {
             tbody.replaceChildren(EmptyTableState());
-        } else {
-            if (tbody.children[0] && !tbody.children[0].dataset.ref) {
-                tbody.textContent = '';
+            return;
+        }
+
+        if (tbody.children[0] && !tbody.children[0].dataset.ref) tbody.textContent = '';
+
+        state.items.forEach((item, index) => {
+            let tr = tbody.children[index];
+            if (tr && tr.dataset.ref === String(item.ref)) {
+                updateQuoteRowUI(tr._views, item);
+            } else {
+                // Preço unitário enviado SEM a moeda, apenas formatado visualmente
+                const { root, views } = QuoteRow(item, CURRENCY.format(item.unitPrice));
+
+                views.qty.btnMinus.onclick = () => events.onRowQtyChange(item.ref, views.qty.input.value - 1);
+                views.qty.btnPlus.onclick = () => events.onRowQtyChange(item.ref, Number(views.qty.input.value) + 1);
+                views.qty.input.onchange = (e) => events.onRowQtyChange(item.ref, e.target.value);
+
+                views.disc.btnMinus.onclick = () => events.onRowDiscChange(item.ref, views.disc.input.value - 1);
+                views.disc.btnPlus.onclick = () => events.onRowDiscChange(item.ref, Number(views.disc.input.value) + 1);
+                views.disc.input.onchange = (e) => events.onRowDiscChange(item.ref, e.target.value);
+
+                views.btnRemove.onclick = () => events.onRemoveRow(item.ref);
+
+                updateQuoteRowUI(views, item);
+                root._views = views;
+                if (tr) tbody.insertBefore(root, tr);
+                else tbody.appendChild(root);
             }
+        });
 
-            const existingRows = new Map();
-            Array.from(tbody.children).forEach(tr => {
-                if (tr.dataset.ref) existingRows.set(tr.dataset.ref, tr);
-            });
+        while (tbody.children.length > state.items.length) tbody.removeChild(tbody.lastChild);
+    };
 
-            tbody.textContent = '';
+    const syncSearchUI = () => {
+        if (!state.isModalOpen || listContainer.children.length === 0) return;
+        const cartItemsMap = new Map(state.items.map(i => [String(i.ref), i]));
 
-            state.items.forEach(item => {
-                let tr = existingRows.get(item.ref);
+        Array.from(listContainer.children).forEach(child => {
+            if (child._views && child.dataset.ref) {
+                const dbProduct = state.searchResults.find(p => String(p.ref) === child.dataset.ref);
+                const cartItem = cartItemsMap.get(child.dataset.ref);
+                if (dbProduct) updateSearchItemUI(child._views, dbProduct, cartItem);
+            }
+        });
+    };
 
-                if (tr) {
-                    updateQuoteRowUI(tr._views, item);
-                    tbody.appendChild(tr);
-                    existingRows.delete(item.ref);
-                } else {
-                    // AQUI: Formatar no controlador e passar para a View
-                    const formattedPrice = CURRENCY.format(item.unitPrice);
-                    const { root, views } = QuoteRow(item, formattedPrice);
-
-                    views.qty.btnMinus.onclick = () => events.onRowQtyChange(item.ref, views.qty.input.value - 1);
-                    // ... (restantes eventos) ...
-                    views.btnRemove.onclick = () => events.onRemoveRow(item.ref);
-
-                    updateQuoteRowUI(views, item);
-                    root._views = views;
-                    tbody.appendChild(root);
-                }
-            });
-        }
-
-        lblSubtotal.textContent = CURRENCY.format(state.totals.subtotal);
-        lblVat.textContent = CURRENCY.format(state.totals.vat);
-        lblTotal.textContent = CURRENCY.format(state.totals.total);
-
-        if (state.isModalOpen && listContainer.children.length > 0) {
-            const cartItemsMap = new Map(state.items.map(i => [String(i.ref), i]));
-            Array.from(listContainer.children).forEach(child => {
-                if (child._views && child.dataset.ref) {
-                    const dbProduct = state.searchResults.find(p => String(p.ref) === child.dataset.ref);
-                    const cartItem = cartItemsMap.get(child.dataset.ref);
-                    if (dbProduct) updateSearchItemUI(child._views, dbProduct, cartItem);
-                }
-            });
-        }
+    const syncCartUI = () => {
+        syncTableUI();
+        syncSearchUI();
     };
 
     syncCartUI();
@@ -134,7 +138,6 @@ function observeState(state, tableViews, totalsViews, modalViews, events, draftS
         if (isOpen) setTimeout(() => { searchInput.value = ''; searchInput.focus(); }, 50);
     });
 
-    // --- RENDERIZAÇÃO DE PESQUISA OTIMIZADA ---
     const buildSearchList = (results) => {
         const oldLoader = document.getElementById("infinite-scroll-loader");
         if (oldLoader) oldLoader.remove();
@@ -151,12 +154,10 @@ function observeState(state, tableViews, totalsViews, modalViews, events, draftS
 
         if (state.searchOffset === 0) listContainer.textContent = '';
 
-        // Otimização Crucial: Set O(1) impede o congelamento do Infinite Scroll (O(N^2) eliminado)
         const renderedRefs = new Set(Array.from(listContainer.children).map(el => el.dataset.ref));
-        const cartItemsMap = new Map(state.items.map(i => [i.ref, i]));
 
         results.forEach(dbProduct => {
-            if (renderedRefs.has(dbProduct.ref)) return;
+            if (renderedRefs.has(String(dbProduct.ref))) return;
 
             const { root, views } = ProductSearchItem(dbProduct);
 
@@ -170,11 +171,11 @@ function observeState(state, tableViews, totalsViews, modalViews, events, draftS
 
             views.btnAction.onclick = () => events.onSearchActionClick(dbProduct);
 
-            const cartItem = cartItemsMap.get(dbProduct.ref);
-            updateSearchItemUI(views, dbProduct, cartItem);
             root._views = views;
             listContainer.appendChild(root);
         });
+
+        syncSearchUI();
 
         if (state.isBottomLoading) listContainer.appendChild(BottomLoader());
     };
@@ -194,25 +195,28 @@ const setupEvents = (state, draftStates) => {
         return draftStates.get(ref);
     };
 
-    const triggerSearch = (query) => {
+    const triggerSearch = (query, immediate = false) => {
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(async () => {
+        state.activeSearchQuery = query;
+
+        const executeSearch = async () => {
             if (state.searchOffset === 0) state.isLoadingSearch = true;
-            state.activeSearchQuery = query;
             state.searchOffset = 0;
             const results = await loadProductsData(query, 0);
             state.searchResults = results;
             state.hasMoreResults = results.length >= 20;
             state.isLoadingSearch = false;
-        }, 300);
+        };
+
+        if (immediate) executeSearch();
+        else debounceTimer = setTimeout(executeSearch, 300);
     };
 
     return {
         onOpenModal: () => {
             state.isModalOpen = true;
             if (state.searchResults.length === 0) {
-                state.isLoadingSearch = true; // <-- Força o loading imediatamente
-                triggerSearch("");
+                triggerSearch("", true);
             }
         },
         onCloseModal: () => state.isModalOpen = false,
@@ -281,15 +285,16 @@ const setupEvents = (state, draftStates) => {
         onSearchInput: (e) => triggerSearch(e.target.value),
         onSearchScroll: async (e) => {
             const el = e.target;
-            // Otimização: Adicionado Buffer de 100px para o trigger do loader 
-            // e previne travamento algoritmico antes da base exata
             const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
 
             if (distanceToBottom <= 100 && !state.isBottomLoading && state.hasMoreResults) {
                 state.isBottomLoading = true;
                 state.searchOffset += 20;
                 const newResults = await loadProductsData(state.activeSearchQuery, state.searchOffset);
-                state.searchResults = [...state.searchResults, ...newResults];
+
+                state.searchResults.push(...newResults);
+                state.searchResults = state.searchResults;
+
                 state.hasMoreResults = newResults.length >= 20;
                 state.isBottomLoading = false;
             }
