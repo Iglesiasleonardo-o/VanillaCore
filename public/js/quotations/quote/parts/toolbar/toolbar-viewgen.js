@@ -1,21 +1,15 @@
 import { a, button, div, h1, header, RichElement, span } from "../../../../shared/viewgencore.js";
 
 export function NavigationHeader(quotationNumber, events) {
-    const views = {}; // 1. Create the empty container for our references
-
-    const root = header({
+    return header({
         id: "mainHeader",
         className: "sticky top-0 md:px-8 md:pb-8 bg-gray-100 border-gray-200 z-30 pt-4 md:pt-8 pb-6 flex flex-col md:flex-row items-center justify-between gap-4 border-b border-gray-200"
     }).Append(
         BackLink(),
         PageTitle(quotationNumber),
-        // 2. Pass the views object down so the helper can attach buttons to it
-        ActionToolbar(events, views),
+        ActionToolbar(events),
         PrintFAB(events)
     );
-
-    // 3. Return both the fully built HTML and the captured references
-    return { root, views };
 }
 
 function BackLink() {
@@ -36,7 +30,7 @@ function PageTitle(quotationNumber) {
     );
 }
 
-function ActionToolbar(events, views) {
+function ActionToolbar(events) {
     return div({ className: "md:flex-1 flex md:justify-end" }).Append(
         div({ className: "flex items-center gap-3" }).Append(
             button({
@@ -47,24 +41,19 @@ function ActionToolbar(events, views) {
                 RichElement("i", { dataset: { lucide: "printer" }, className: "w-4 h-4" }),
                 span({ textContent: "Imprimir" })
             ),
-
-            // Capture the Save Button and Text directly into the views object
-            (views.saveButton = button({
+            button({
                 id: "saveQuoteButton",
                 className: "no-print flex items-center justify-center gap-2 px-6 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg transition-all active:scale-95",
                 onclick: events.onSaveClick
             }).Append(
                 RichElement("i", { dataset: { lucide: "save" }, className: "w-4 h-4" }),
-                (views.saveButtonText = span({ id: "saveButtonText", textContent: "Guardar" }))
+                span({ id: "saveButtonText", textContent: "Guardar" })
             )),
-
-            // Pass views down one more level for the dropdown menu
-            OptionsDropdown(events, views)
-        )
+        OptionsDropdown(events)
     );
 }
 
-function OptionsDropdown(events, views) {
+function OptionsDropdown(events) {
     return div({ className: "dropdown relative no-print inline-block" }).Append(
         // Gatilho: 3 pontos
         button({
@@ -73,11 +62,10 @@ function OptionsDropdown(events, views) {
         }).Append(
             RichElement("i", { dataset: { lucide: "more-vertical" }, className: "w-6 h-6" })
         ),
-        // Menu: O "Card" flutuante (Captured into views)
-        (views.dropdownMenu = div({
+        div({
+            id: "options-dropdown",
             className: "dropdown-menu hidden absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-200"
         }).Append(
-            // Opção: Clonar
             button({
                 className: "w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors group/item",
                 onclick: events.onCloneClick
@@ -88,7 +76,7 @@ function OptionsDropdown(events, views) {
                 }),
                 span({ className: "font-medium", textContent: "Clonar cotação" })
             )
-        ))
+        )
     );
 }
 
