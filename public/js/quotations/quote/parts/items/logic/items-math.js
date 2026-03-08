@@ -1,4 +1,8 @@
 // logic/items-math.js
+
+export const CURRENCY = new Intl.NumberFormat('pt-MZ', { minimumFractionDigits: 2 }); // Apenas número
+export const CURRENCY_SYMBOL = new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }); // Com moeda para os totais
+
 export function validateStepperValue(value, min = 0, max = 1000000) {
     const num = parseFloat(value);
     if (isNaN(num)) return min;
@@ -27,9 +31,6 @@ export function calculateTotals(items, vatRate = 16) {
 }
 
 // Adicione em logic/items-math.js
-export function calculateLineTotal(unitPrice, quantity, discount = 0) {
-    const price = Number(unitPrice) || 0;
-    const qty = Number(quantity) || 1;
-    const disc = Number(discount) || 0;
-    return (price * qty) * (1 - (disc / 100));
+export function calculateLineTotal(unitPrice, quantity, discount) {
+    return (unitPrice * quantity) * (1 - (discount / 100));
 }

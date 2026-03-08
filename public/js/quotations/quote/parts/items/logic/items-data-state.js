@@ -1,32 +1,30 @@
 // logic/items-data-state.js
 import { LiveArrayState, LiveState } from "../../../../../vanilla-core/vanilla-livestate.js";
 
-let itemsState;
+let itemsUiState, itemsState;
 
-export function createItemsState(initialItems = []) {
-    const itemsArray = LiveArrayState(initialItems);
+export function createItemsState(initialItems) {
+    return {
+        itemsUiState: LiveState({
+            globalDiscount: 0,
+            totals: initialItems.totals,
 
-    itemsState = LiveState({
-        items: itemsArray,
-        globalDiscount: 0,
-        totals: initialItems.totals,
-
-        // Transient UI State
-        isModalOpen: false,
-        activeSearchQuery: "",
-        searchResults: [],
-        isLoadingSearch: false,
-        isBottomLoading: false,
-        searchOffset: 0,
-        hasMoreResults: true
-    });
-
-    return itemsState;
+            // Transient UI State
+            isModalOpen: false,
+            activeSearchQuery: "",
+            searchResults: [],
+            isLoadingSearch: false,
+            isBottomLoading: false,
+            searchOffset: 0,
+            hasMoreResults: true
+        }),
+        itemsState: LiveArrayState(initialItems)
+    };
 }
 
 export function getItemsData() {
     return {
-        items: itemsState.items.map(item => ({
+        items: itemsState.map(item => ({
             ref: item.ref,
             name: item.name,
             quantity: item.quantity,
@@ -35,6 +33,6 @@ export function getItemsData() {
             taxRate: 16,
             totalLine: parseFloat(((item.unitPrice * item.quantity) * (1 - (item.discount || 0) / 100) * 1.16).toFixed(2))
         })),
-        totals: itemsState.totals
+        totals: itemsUiState.totals
     };
 }

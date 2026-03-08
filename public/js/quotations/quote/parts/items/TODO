@@ -1,5 +1,15 @@
-* Fix initial item that on modal, the discount and unit Price doesnt appear
-* When you click "Adicionar produtos" for the first time it seems like it loads twice
-* Icons should only live inside viewgen and not items-render.js
-* I think there's so much logic that shoul've been inside math.js instead and not all inside render
-* Algorithm seems to be repeating itself many times, should be simpler?
+<!--  -->
+
+<!-- DAY 1 -->
+* Make modal observer work
+* If no more items remove observer, show "There are no more products in database".
+
+<!-- DAY 2 and maybe 3 -->
+* Make search work
+* Search must work even with observer
+
+<!-- DONE -->
+* Make modal add work, adds a quote row
+* Make modal quantity plus, minus, change work DONE
+* Make modal disc plus, minus, change work DONE
+* Make modal remove work, removes a quote row

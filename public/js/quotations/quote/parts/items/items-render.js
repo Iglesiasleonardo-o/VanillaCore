@@ -1,303 +1,534 @@
-import { createItemsState } from "./logic/items-data-state.js";
-import { validateStepperValue, calculateTotals, calculateLineTotal } from "./logic/items-math.js";
+import { BottomLoader, EmptySearchState, EmptyTableState, ItemsModalWidget, ItemsTableWidget, ModalItem, QuoteRow, TotalsWidget } from "./items-viewgen.js";
+import { CURRENCY, CURRENCY_SYMBOL } from "./logic/items-math.js";
 import { loadProductsData } from "./logic/items-network.js";
-import { ItemsTableWidget, TotalsWidget, ItemsModal, QuoteRow, ProductSearchItem, EmptyTableState, EmptySearchState, LoadingState, BottomLoader, updateActionBtnUI } from "./items-viewgen.js";
+
+// UI STATE
+let modalObserver = null;
+let currentCursor = 0;
+let currentSearchQuery = "";
+let searchTimeout;
 
 export function setupItemsModule(quotation) {
-    const draftStates = new Map();
-    const state = createItemsState(quotation.items || []);
-    const events = setupEvents(state, draftStates);
+    const quoteItems = quotation.items || [];
 
-    const tableUI = ItemsTableWidget(events);
-    const totalsUI = TotalsWidget(events);
-    const modalUI = ItemsModal(events);
+    const events = setupEvents(quotation);
+    const tableWidget = ItemsTableWidget(events, quoteItems, toQuoteRowViewModel);
 
-    observeState(state, tableUI.views, totalsUI.views, modalUI.views, events, draftStates);
+    const quoteTotals = quotation.totals;
+    const formatedSubtotal = CURRENCY_SYMBOL.format(quoteTotals.subtotal);
+    const formatedTaxTotal = CURRENCY_SYMBOL.format(quoteTotals.taxTotal);
+    const formatedGrandTotal = CURRENCY_SYMBOL.format(quoteTotals.grandTotal);
 
-    return { tableWidget: tableUI.root, totalsWidget: totalsUI.root, modal: modalUI.root };
+    const totalsWidget = TotalsWidget(events.row, formatedSubtotal, formatedTaxTotal, formatedGrandTotal);
+    const modalWidget = ItemsModalWidget(events.modal);
+
+    return { tableWidget, totalsWidget, modalWidget };
 }
 
-// --- OBSERVER ---
-function observeState(state, tableViews, totalsViews, modalViews, events, draftStates) {
-    const { tbody } = tableViews;
-    const { lblSubtotal, lblVat, lblTotal, toggleGlobalDiscount, globalDiscountInput } = totalsViews;
-    const { modalOverlay, searchInput, listContainer } = modalViews;
+function setupEvents(quotation) {
+    const TAX_RATE = 0.16;
+    const ITEMS_LENGTH = 50;
 
-    const CURRENCY = new Intl.NumberFormat('pt-MZ', { minimumFractionDigits: 2 }); // Apenas número
-    const CURRENCY_SYMBOL = new Intl.NumberFormat('pt-MZ', { style: 'currency', currency: 'MZN' }); // Com moeda para os totais
-
-    const updateStepperUI = (stepperViews, value) => {
-        if (stepperViews.input.value !== String(value)) stepperViews.input.value = value;
-        stepperViews.print.textContent = value;
-    };
-
-    const updateQuoteRowUI = (views, item) => {
-        updateStepperUI(views.qty, item.quantity);
-        updateStepperUI(views.disc, item.discount || 0);
-        const total = calculateLineTotal(item.unitPrice, item.quantity, item.discount || 0);
-        // Total da linha TEM a moeda (MZN)
-        views.lblTotal.textContent = CURRENCY.format(total);
-    };
-
-    const updateSearchItemUI = (views, dbProduct, cartItem) => {
-        const isAdded = !!cartItem;
-        const draft = draftStates.get(dbProduct.ref) || { qty: 1, disc: 0 };
-        const currentQty = Number(isAdded ? cartItem.quantity : draft.qty);
-        const currentDisc = Number(isAdded ? cartItem.discount : draft.disc);
-
-        const total = calculateLineTotal(dbProduct.unitPrice, currentQty, currentDisc);
-
-        updateStepperUI(views.qty, currentQty);
-        updateStepperUI(views.disc, currentDisc);
-
-        // Total da pesquisa TEM a moeda
-        views.lblTotal.textContent = CURRENCY_SYMBOL.format(total);
-
-        views.lblStatus.textContent = isAdded ? "No Carrinho" : "";
-        views.lblStatus.className = isAdded ? "text-[10px] text-blue-600 font-bold px-1.5 py-0.5 bg-blue-100 rounded mt-1" : "hidden";
-
-        updateActionBtnUI(views.btnAction, isAdded);
-    };
-
-    // --- ALGORITMO IN-PLACE OTIMIZADO ---
-    const syncTableUI = () => {
-        state.totals = calculateTotals(state.items);
-
-        // Totais finais TÊM a moeda
-        lblSubtotal.textContent = CURRENCY_SYMBOL.format(state.totals.subtotal);
-        lblVat.textContent = CURRENCY_SYMBOL.format(state.totals.vat);
-        lblTotal.textContent = CURRENCY_SYMBOL.format(state.totals.total);
-
-        if (state.items.length === 0) {
-            tbody.replaceChildren(EmptyTableState());
-            return;
+    const setupInfiniteScrollObserver = (targetElement, itemsList) => {
+        if (modalObserver) {
+            modalObserver.disconnect();
         }
 
-        if (tbody.children[0] && !tbody.children[0].dataset.ref) tbody.textContent = '';
+        modalObserver = new IntersectionObserver(async (entries) => {
+            const entry = entries[0];
+            if (!entry.isIntersecting) return;
 
-        state.items.forEach((item, index) => {
-            let tr = tbody.children[index];
-            if (tr && tr.dataset.ref === String(item.ref)) {
-                updateQuoteRowUI(tr._views, item);
-            } else {
-                // Preço unitário enviado SEM a moeda, apenas formatado visualmente
-                const { root, views } = QuoteRow(item, CURRENCY.format(item.unitPrice));
+            // Disconnect immediately so we don't trigger multiple fetches while loading
+            modalObserver.disconnect();
 
-                views.qty.btnMinus.onclick = () => events.onRowQtyChange(item.ref, views.qty.input.value - 1);
-                views.qty.btnPlus.onclick = () => events.onRowQtyChange(item.ref, Number(views.qty.input.value) + 1);
-                views.qty.input.onchange = (e) => events.onRowQtyChange(item.ref, e.target.value);
+            // 1. Show the Bottom Loader
+            const loaderNode = BottomLoader();
+            itemsList.appendChild(loaderNode);
 
-                views.disc.btnMinus.onclick = () => events.onRowDiscChange(item.ref, views.disc.input.value - 1);
-                views.disc.btnPlus.onclick = () => events.onRowDiscChange(item.ref, Number(views.disc.input.value) + 1);
-                views.disc.input.onchange = (e) => events.onRowDiscChange(item.ref, e.target.value);
+            // 2. Fetch using the LAST KNOWN name cursor
+            const newResults = await loadProductsData(currentSearchQuery, currentCursor);
 
-                views.btnRemove.onclick = () => events.onRemoveRow(item.ref);
+            // 3. Remove the Loader
+            loaderNode.remove();
 
-                updateQuoteRowUI(views, item);
-                root._views = views;
-                if (tr) tbody.insertBefore(root, tr);
-                else tbody.appendChild(root);
-            }
-        });
+            // 4. Render and append new items
+            if (newResults.length > 0) {
+                currentCursor = newResults[newResults.length - 1].name;
 
-        while (tbody.children.length > state.items.length) tbody.removeChild(tbody.lastChild);
-    };
-
-    const syncSearchUI = () => {
-        if (!state.isModalOpen || listContainer.children.length === 0) return;
-        const cartItemsMap = new Map(state.items.map(i => [String(i.ref), i]));
-
-        Array.from(listContainer.children).forEach(child => {
-            if (child._views && child.dataset.ref) {
-                const dbProduct = state.searchResults.find(p => String(p.ref) === child.dataset.ref);
-                const cartItem = cartItemsMap.get(child.dataset.ref);
-                if (dbProduct) updateSearchItemUI(child._views, dbProduct, cartItem);
-            }
-        });
-    };
-
-    const syncCartUI = () => {
-        syncTableUI();
-        syncSearchUI();
-    };
-
-    syncCartUI();
-    state.on("syncTrigger", syncCartUI);
-
-    state.on("isGlobalDiscountActive", (isActive) => {
-        toggleGlobalDiscount.checked = isActive;
-        globalDiscountInput.disabled = !isActive;
-    });
-
-    state.on("globalDiscount", (val) => {
-        if (globalDiscountInput.value !== String(val)) globalDiscountInput.value = val;
-    });
-
-    state.on("isModalOpen", (isOpen) => {
-        modalOverlay.classList.toggle("hidden", !isOpen);
-        if (isOpen) setTimeout(() => { searchInput.value = ''; searchInput.focus(); }, 50);
-    });
-
-    const buildSearchList = (results) => {
-        const oldLoader = document.getElementById("infinite-scroll-loader");
-        if (oldLoader) oldLoader.remove();
-
-        if (state.isLoadingSearch && state.searchOffset === 0) {
-            listContainer.replaceChildren(LoadingState());
-            return;
-        }
-
-        if (results.length === 0 && !state.isLoadingSearch) {
-            listContainer.replaceChildren(EmptySearchState());
-            return;
-        }
-
-        if (state.searchOffset === 0) listContainer.textContent = '';
-
-        const renderedRefs = new Set(Array.from(listContainer.children).map(el => el.dataset.ref));
-
-        results.forEach(dbProduct => {
-            if (renderedRefs.has(String(dbProduct.ref))) return;
-
-            const { root, views } = ProductSearchItem(dbProduct);
-
-            views.qty.btnMinus.onclick = () => events.onSearchQtyChange(dbProduct.ref, views.qty.input.value - 1);
-            views.qty.btnPlus.onclick = () => events.onSearchQtyChange(dbProduct.ref, Number(views.qty.input.value) + 1);
-            views.qty.input.onchange = (e) => events.onSearchQtyChange(dbProduct.ref, e.target.value);
-
-            views.disc.btnMinus.onclick = () => events.onSearchDiscChange(dbProduct.ref, views.disc.input.value - 1);
-            views.disc.btnPlus.onclick = () => events.onSearchDiscChange(dbProduct.ref, Number(views.disc.input.value) + 1);
-            views.disc.input.onchange = (e) => events.onSearchDiscChange(dbProduct.ref, e.target.value);
-
-            views.btnAction.onclick = () => events.onSearchActionClick(dbProduct);
-
-            root._views = views;
-            listContainer.appendChild(root);
-        });
-
-        syncSearchUI();
-
-        if (state.isBottomLoading) listContainer.appendChild(BottomLoader());
-    };
-
-    state.on("searchResults", buildSearchList);
-    state.on("isLoadingSearch", () => buildSearchList(state.searchResults));
-    state.on("isBottomLoading", () => buildSearchList(state.searchResults));
-}
-
-// --- EVENTS FACTORY ---
-const setupEvents = (state, draftStates) => {
-    let debounceTimer = null;
-    const fireSync = () => state.syncTrigger = !state.syncTrigger;
-
-    const getDraft = (ref) => {
-        if (!draftStates.has(ref)) draftStates.set(ref, { qty: 1, disc: 0 });
-        return draftStates.get(ref);
-    };
-
-    const triggerSearch = (query, immediate = false) => {
-        clearTimeout(debounceTimer);
-        state.activeSearchQuery = query;
-
-        const executeSearch = async () => {
-            if (state.searchOffset === 0) state.isLoadingSearch = true;
-            state.searchOffset = 0;
-            const results = await loadProductsData(query, 0);
-            state.searchResults = results;
-            state.hasMoreResults = results.length >= 20;
-            state.isLoadingSearch = false;
-        };
-
-        if (immediate) executeSearch();
-        else debounceTimer = setTimeout(executeSearch, 300);
-    };
-
-    return {
-        onOpenModal: () => {
-            state.isModalOpen = true;
-            if (state.searchResults.length === 0) {
-                triggerSearch("", true);
-            }
-        },
-        onCloseModal: () => state.isModalOpen = false,
-
-        onRowQtyChange: (ref, rawValue) => {
-            const index = state.items.findIndex(i => i.ref === ref);
-            if (index > -1) state.items[index].quantity = validateStepperValue(rawValue, 1, 100000);
-            fireSync();
-        },
-        onRowDiscChange: (ref, rawValue) => {
-            const index = state.items.findIndex(i => i.ref === ref);
-            if (index > -1) state.items[index].discount = validateStepperValue(rawValue, 0, 100);
-            fireSync();
-        },
-        onRemoveRow: (ref) => {
-            const index = state.items.findIndex(i => i.ref === ref);
-            if (index > -1) state.items.splice(index, 1);
-            fireSync();
-        },
-
-        onSearchQtyChange: (ref, rawValue) => {
-            const val = validateStepperValue(rawValue, 1, 100000);
-            const index = state.items.findIndex(i => i.ref === ref);
-            if (index > -1) state.items[index].quantity = val;
-            else getDraft(ref).qty = val;
-            fireSync();
-        },
-        onSearchDiscChange: (ref, rawValue) => {
-            const val = validateStepperValue(rawValue, 0, 100);
-            const index = state.items.findIndex(i => i.ref === ref);
-            if (index > -1) state.items[index].discount = val;
-            else getDraft(ref).disc = val;
-            fireSync();
-        },
-        onSearchActionClick: (dbProduct) => {
-            const index = state.items.findIndex(i => i.ref === dbProduct.ref);
-            if (index > -1) {
-                state.items.splice(index, 1);
-            } else {
-                const draft = getDraft(dbProduct.ref);
-                state.items.push({
-                    ref: dbProduct.ref,
-                    name: dbProduct.name,
-                    unitPrice: dbProduct.unitPrice,
-                    quantity: draft.qty,
-                    discount: draft.disc
+                newResults.forEach(item => {
+                    const cartItem = quotation.items.find(i => i.ref === item.ref);
+                    const viewData = toModalViewModel(cartItem, item);
+                    itemsList.appendChild(ModalItem(!!cartItem, item, viewData, events.modal));
                 });
             }
-            fireSync();
+
+            if (newResults.length < ITEMS_LENGTH) {
+
+            } else {
+                // We have a full batch, attach observer to the NEW last element
+                const newLastItem = itemsList.lastElementChild;
+                if (newLastItem) modalObserver.observe(newLastItem);
+            }
+        }, {
+            root: itemsList,
+            rootMargin: "100px",
+            threshold: 0
+        });
+
+        modalObserver.observe(targetElement);
+    };
+
+    // Helper: Explicitly accepts item to avoid reference errors
+    const calculateLine = (item, qty, disc) => {
+        const subtotal = (item.unitPrice * qty) * (1 - (disc / 100));
+        return { subtotal, tax: subtotal * TAX_RATE };
+    };
+
+    const handleLineUpdate = (item, newQty, newDisc) => {
+        // 1. Calculate deltas based on current item object state
+        const oldVals = calculateLine(item, item.quantity, item.discount);
+        const newVals = calculateLine(item, newQty, newDisc);
+
+        // 2. Update item source of truth
+        item.quantity = newQty;
+        item.discount = newDisc;
+        item.totalLine = newVals.subtotal;
+
+        // 3. Update DOM UI
+        const itemRef = item.ref;
+        $(`qty-${itemRef}`).value = newQty;
+        $(`qty-print-${itemRef}`).textContent = newQty;
+
+        $(`disc-${itemRef}`).value = newDisc;
+        $(`disc-print-${itemRef}`).textContent = newDisc;
+
+        // Use currency formatter to match unitPrice style
+        $(`total-line-${itemRef}`).textContent = CURRENCY.format(newVals.subtotal.toFixed(2));
+
+        // 4. Update Global Totals (O(1) Delta)
+        const quoteTotals = quotation.totals;
+        quoteTotals.subtotal += (newVals.subtotal - oldVals.subtotal);
+        quoteTotals.taxTotal += (newVals.tax - oldVals.tax);
+        quoteTotals.grandTotal = quoteTotals.subtotal + quoteTotals.taxTotal;
+
+        // 5. Update Labels
+        updateQuotationTotals(quoteTotals);
+    };
+
+    const updateUIAndState = (item, newQty, newDisc, initialVals) => {
+        // 1. Update DOM Elements
+        const itemRef = item.ref;
+        // Modal
+        $(`modal-qty-${itemRef}`).value = newQty;
+        $(`modal-total-line-${itemRef}`).textContent = CURRENCY_SYMBOL.format(initialVals.subtotal.toFixed(2));
+
+        // Main Table
+        const quoteQtyInput = $(`qty-${itemRef}`);
+        if (quoteQtyInput) {
+            quoteQtyInput.value = newQty;
+            $(`qty-print-${itemRef}`).textContent = newQty;
+            $(`disc-${itemRef}`).value = newDisc;
+            $(`disc-print-${itemRef}`).textContent = newDisc;
+            $(`total-line-${itemRef}`).textContent = CURRENCY.format(initialVals.subtotal.toFixed(2));
+
+
+            // 2. Update Data Source
+            const quoteItem = quotation.items.find(i => i.ref === itemRef);
+            const oldSubtotal = quoteItem.totalLine;
+
+            quoteItem.quantity = newQty;
+            quoteItem.discount = newDisc;
+            quoteItem.totalLine = initialVals.subtotal;
+            quoteItem.taxRate = initialVals.tax;
+
+            // 3. Update Totals
+            const quoteTotals = quotation.totals;
+            quoteTotals.subtotal = (quoteTotals.subtotal - oldSubtotal) + initialVals.subtotal;
+            quoteTotals.taxTotal = quoteTotals.subtotal * TAX_RATE;
+            quoteTotals.grandTotal = quoteTotals.subtotal + quoteTotals.taxTotal;
+
+            updateQuotationTotals(quoteTotals);
+        }
+    };
+
+    function updateQuotationTotals(totals) {
+        $(`lblSubtotal`).textContent = CURRENCY_SYMBOL.format(totals.subtotal);
+        $(`lblVat`).textContent = CURRENCY_SYMBOL.format(totals.taxTotal);
+        $(`lblTotal`).textContent = CURRENCY_SYMBOL.format(totals.grandTotal);
+    }
+
+    const events = {
+        modal: {
+            onOpen: async () => {
+                $("items-modal-overlay").classList.remove("hidden");
+                $("modal-search").focus();
+
+                // Reset pagination state for a fresh open
+                currentCursor = "";
+                currentSearchQuery = "";
+
+                const loading = $("modal-loading");
+                loading.classList.remove("hidden");
+                const results = await loadProductsData(currentSearchQuery, currentCursor);
+                loading.classList.add("hidden");
+
+                const itemsList = $("items-list");
+                itemsList.textContent = "";
+                itemsList.scrollTop = 0;
+
+                const cartItems = {};
+                quotation.items.forEach(item => {
+                    cartItems[item.ref] = item;
+                });
+
+                results.forEach(item => {
+                    const cartItem = cartItems[item.ref];
+                    const viewData = toModalViewModel(cartItem, item);
+                    itemsList.appendChild(ModalItem(!!cartItem, item, viewData, events.modal));
+                });
+
+                // Capture the first cursor if we have results
+                if (results.length > 0) {
+                    currentCursor = results[results.length - 1].name;
+                }
+
+                // Check if we need to set up the observer
+                if (results.length === ITEMS_LENGTH) {
+                    const lastItem = itemsList.lastElementChild;
+                    setupInfiniteScrollObserver(lastItem, itemsList);
+                } else {
+
+                }
+            },
+            onClose: () => {
+                $("items-modal-overlay").classList.add("hidden");
+                $("modal-loading").classList.remove("hidden");
+                $("modal-search").value = "";
+            },
+            onSearchInput: (e) => {
+                // if empty, populate initial items
+                // 1. Captura o texto escrito pelo utilizador
+                const query = e.target.value.trim();
+
+                // 2. Limpa o timer anterior se o utilizador continuar a escrever (Debounce)
+                clearTimeout(searchTimeout);
+
+                // 3. Define um novo timer para executar a pesquisa após 300ms de inatividade
+                searchTimeout = setTimeout(async () => {
+                    // Atualiza os estados para uma nova pesquisa limpa
+                    currentSearchQuery = query;
+                    currentCursor = "";
+
+                    // Desconecta o observer antigo para evitar conflitos
+                    if (modalObserver) modalObserver.disconnect();
+
+                    // Prepara a UI: Limpa a lista e mostra o spinner principal
+                    const itemsList = $("items-list");
+                    itemsList.textContent = "";
+                    itemsList.scrollTop = 0;
+
+                    const loading = $("modal-loading");
+                    loading.classList.remove("hidden");
+
+                    // Dispara a pesquisa
+                    const results = await loadProductsData(currentSearchQuery, currentCursor);
+                    loading.classList.add("hidden");
+
+                    // Se a pesquisa não retornar nada, mostra o EmptySearchState
+                    if (results.length === 0) {
+                        itemsList.appendChild(EmptySearchState());
+                        return; // Sai da função cedo, não há nada para renderizar
+                    }
+
+                    // Se encontrou resultados, atualiza o cursor para o último item desta nova lista
+                    currentCursor = results[results.length - 1].name;
+
+                    // Mapeia os itens que já estão no carrinho
+                    const cartItems = {};
+                    quotation.items.forEach(item => {
+                        cartItems[item.ref] = item;
+                    });
+
+                    // Renderiza e injeta os novos resultados
+                    results.forEach(item => {
+                        const cartItem = cartItems[item.ref];
+                        const viewData = toModalViewModel(cartItem, item);
+                        itemsList.appendChild(ModalItem(!!cartItem, item, viewData, events.modal));
+                    });
+
+                    // Verifica se precisamos do Observer ou da EndMessage
+                    if (results.length === ITEMS_LENGTH) {
+                        const lastItem = itemsList.lastElementChild;
+                        setupInfiniteScrollObserver(lastItem, itemsList);
+                    } else {
+
+                    }
+                }, 300); // 300ms de atraso
+            },
+            onAddItem: (item) => {
+                // 1. Toggle Modal Button States
+                $(`modal-item-status-${item.ref}`).classList.toggle("hidden");
+                $(`modal-remove-btn-${item.ref}`).classList.toggle("hidden");
+                $(`modal-add-btn-${item.ref}`).classList.toggle("hidden");
+
+                // 2. Prepare the new Quote Item object (Source of Truth)
+                const quoteItem = {
+                    ...item,
+                    quantity: parseFloat($(`modal-qty-${item.ref}`).value) || 1,
+                    discount: parseFloat($(`modal-disc-${item.ref}`).value) || 0,
+                    taxRate: TAX_RATE * 100 // Based on your TAX_RATE constant (0.16 -> 16%)
+                };
+
+                // 3. Calculate initial values using your helper
+                const initialVals = calculateLine(quoteItem, quoteItem.quantity, quoteItem.discount);
+                quoteItem.totalLine = initialVals.subtotal;
+
+                // 4. Update the Modal UI Total
+                $(`modal-total-line-${item.ref}`).textContent = CURRENCY_SYMBOL.format(initialVals.subtotal.toFixed(2));
+
+                // 5. Update Global State
+                quotation.items.push(quoteItem);
+
+                // 6. Render and Inject into Main Table
+                // Create the formatted view data expected by QuoteRow
+                const viewData = {
+                    unitPrice: CURRENCY.format(quoteItem.unitPrice),
+                    totalLine: CURRENCY.format(quoteItem.totalLine)
+                };
+
+                // Generate the DOM node
+                const newRow = QuoteRow(quoteItem, viewData, events.row);
+
+                // Select your table body (you may need to add an ID to your tbody if you don't have one)
+                const tbody = $("items-tbody");
+
+                // Handle Empty State Removal
+                // If this is the first item, clear out the EmptyTableState placeholder
+                if (quotation.items.length === 1) {
+                    tbody.textContent = "";
+                }
+
+                tbody.appendChild(newRow);
+
+                // 8. Update Global Totals
+                const quoteTotals = quotation.totals;
+                quoteTotals.subtotal += initialVals.subtotal;
+                quoteTotals.taxTotal += initialVals.tax;
+                quoteTotals.grandTotal = quoteTotals.subtotal + quoteTotals.taxTotal;
+
+                // 9. Update Totals UI
+                updateQuotationTotals(quoteTotals);
+            },
+            onRemoveItem: (item) => {
+                // 1. Toggle UI buttons
+                $(`modal-item-status-${item.ref}`).classList.toggle("hidden");
+                $(`modal-remove-btn-${item.ref}`).classList.toggle("hidden");
+                $(`modal-add-btn-${item.ref}`).classList.toggle("hidden");
+
+                // 2. Reset modal inputs visually
+                $(`modal-qty-${item.ref}`).value = 1;
+                $(`modal-disc-${item.ref}`).value = 0;
+
+                // 3. Reset the modal's line total label back to 1x unit price
+                const defaultVals = calculateLine(item, 1, 0);
+                $(`modal-total-line-${item.ref}`).textContent = CURRENCY_SYMBOL.format(defaultVals.subtotal.toFixed(2));
+
+                // 4. THE FIX: Find the actual stateful item that has the quantity/discount data
+                const cartItem = quotation.items.find(i => i.ref === item.ref);
+
+                // 5. Pass the cartItem to the row logic, not the raw database item
+                events.row.onRemove(cartItem);
+            },
+            onQtyAdd: (item) => {
+                const newQty = Number($(`modal-qty-${item.ref}`).value) + 1;
+                const newDisc = Number($(`modal-disc-${item.ref}`).value);
+                const initialVals = calculateLine(item, newQty, newDisc);
+
+                updateUIAndState(item, newQty, newDisc, initialVals);
+            },
+
+            onQtyRemove: (item) => {
+                const currentQty = Number($(`modal-qty-${item.ref}`).value);
+
+                if (currentQty <= 1) return;
+
+                const newQty = currentQty - 1;
+                const newDisc = Number($(`modal-disc-${item.ref}`).value);
+                const initialVals = calculateLine(item, newQty, newDisc);
+
+                updateUIAndState(item, newQty, newDisc, initialVals);
+            },
+            onQtyChange: (e, item) => {
+                const input = e.target;
+                let val = Number(input.value);
+
+                // Failsafe: Reset to 1 if invalid
+                if (isNaN(val) || val < 1) {
+                    val = 1;
+                    input.value = val;
+                }
+
+                const newDisc = Number($(`modal-disc-${item.ref}`).value);
+                const initialVals = calculateLine(item, val, newDisc);
+
+                updateUIAndState(item, val, newDisc, initialVals);
+            },
+            onDiscAdd: (item) => {
+                const currentDisc = Number($(`modal-disc-${item.ref}`).value);
+
+                if (currentDisc < 100) {
+                    const newDisc = currentDisc + 1;
+                    const newQty = Number($(`modal-qty-${item.ref}`).value);
+                    const initialVals = calculateLine(item, newQty, newDisc);
+
+                    $(`modal-disc-${item.ref}`).value = newDisc;
+                    updateUIAndState(item, newQty, newDisc, initialVals);
+                }
+            },
+            onDiscChange: (e, item) => {
+                const input = e.target;
+                let val = Number(input.value);
+
+                // Failsafe: Reset to 0 if invalid
+                if (isNaN(val) || val < 0 || val > 100) {
+                    val = 0;
+                    input.value = val;
+                }
+
+                const newQty = Number($(`modal-qty-${item.ref}`).value);
+                const initialVals = calculateLine(item, newQty, val);
+
+                updateUIAndState(item, newQty, val, initialVals);
+            },
+            onDiscRemove: (item) => {
+                const currentDisc = Number($(`modal-disc-${item.ref}`).value);
+                if (currentDisc > 0) {
+                    const newDisc = currentDisc - 1;
+                    const newQty = Number($(`modal-qty-${item.ref}`).value);
+                    const initialVals = calculateLine(item, newQty, newDisc);
+
+                    $(`modal-disc-${item.ref}`).value = newDisc;
+                    updateUIAndState(item, newQty, newDisc, initialVals);
+                }
+            },
         },
+        row: {
+            // --- QTY ---
+            onQtyChange: (e, item) => {
+                const input = e.target;
+                let val = Number(input.value);
 
-        onToggleGlobalDiscount: (e) => {
-            const isActive = e.target.checked;
-            state.isGlobalDiscountActive = isActive;
-            if (!isActive) state.globalDiscount = 0;
-            state.items.forEach(item => item.discount = state.globalDiscount);
-            fireSync();
-        },
-        onGlobalDiscountInput: (e) => {
-            const safeDisc = validateStepperValue(e.target.value, 0, 100);
-            state.globalDiscount = safeDisc;
-            state.items.forEach(item => item.discount = safeDisc);
-            fireSync();
-        },
+                // Failsafe: Reset to 1
+                if (isNaN(val) || val < 1) {
+                    val = 1;
+                    input.value = val;
+                }
 
-        onSearchInput: (e) => triggerSearch(e.target.value),
-        onSearchScroll: async (e) => {
-            const el = e.target;
-            const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+                handleLineUpdate(item, val, item.discount);
+            },
+            onQtyAdd: (item) => {
+                handleLineUpdate(item, item.quantity + 1, item.discount)
+            },
+            onQtyRemove: (item) => {
+                if (item.quantity <= 1) return;
+                handleLineUpdate(item, item.quantity - 1, item.discount);
+            },
 
-            if (distanceToBottom <= 100 && !state.isBottomLoading && state.hasMoreResults) {
-                state.isBottomLoading = true;
-                state.searchOffset += 20;
-                const newResults = await loadProductsData(state.activeSearchQuery, state.searchOffset);
+            // --- DISC ---
+            onDiscChange: (e, item) => {
+                const input = e.target;
+                let val = Number(input.value);
 
-                state.searchResults.push(...newResults);
-                state.searchResults = state.searchResults;
+                // Failsafe: Reset to 0
+                if (isNaN(val) || val < 0 || val > 100) {
+                    val = 0;
+                    input.value = val;
+                }
 
-                state.hasMoreResults = newResults.length >= 20;
-                state.isBottomLoading = false;
+                handleLineUpdate(item, item.quantity, val);
+            },
+            onDiscAdd: (e, item) => {
+                if (item.discount < 100) {
+                    handleLineUpdate(item, item.quantity, item.discount + 1);
+                }
+            },
+            onDiscRemove: (e, item) => {
+                if (item.discount > 0) {
+                    handleLineUpdate(item, item.quantity, item.discount - 1);
+                }
+            },
+
+            onRemove: (item) => {
+                handleLineUpdate(item, 0, 0);
+                const qtyInput = $(`qty-${item.ref}`);
+
+                const row = qtyInput.closest("tr");
+                const tbody = row.parentElement;
+                row.remove();
+
+                quotation.items = quotation.items.filter(i => i.ref !== item.ref);
+                if (quotation.items.length === 0) {
+                    tbody.appendChild(EmptyTableState());
+                }
+            },
+            onToggleGlobalDiscount: e => {
+                const isChecked = e.target.checked;
+                const discInput = $("globalDiscountInput");
+
+                // 1. Ativa/Desativa o input de texto
+                discInput.disabled = !isChecked;
+
+                // 2. Define o valor a aplicar (0 se desligou, ou o valor atual se ligou)
+                const globalDisc = isChecked ? (Number(discInput.value) || 0) : 0;
+
+                // 3. Limpa o input visualmente se foi desligado
+                if (!isChecked) {
+                    discInput.value = "";
+                }
+
+                // 4. A Mágica: Reutiliza o teu `handleLineUpdate` em loop!
+                // Isto vai atualizar o UI de cada linha, recalcular deltas, e atualizar os Totais Globais
+                quotation.items.forEach(item => {
+                    handleLineUpdate(item, item.quantity, globalDisc);
+                });
+            },
+            onGlobalDiscountInput: (e) => {
+                let val = Number(e.target.value);
+
+                // Failsafe: Evitar valores absurdos ou letras
+                if (isNaN(val) || val < 0 || val > 100) {
+                    val = 0;
+                    e.target.value = val;
+                }
+
+                // Aplica a nova percentagem a todos os itens instantaneamente
+                quotation.items.forEach(item => {
+                    handleLineUpdate(item, item.quantity, val);
+                });
             }
         }
+    };
+    return events;
+}
+
+const toQuoteRowViewModel = (quoteItem) => ({
+    unitPrice: CURRENCY_SYMBOL.format(quoteItem.unitPrice),
+    totalLine: CURRENCY_SYMBOL.format(quoteItem.totalLine)
+});
+
+const toModalViewModel = (cartItem, item) => {
+    if (cartItem) {
+        return {
+            unitPrice: CURRENCY_SYMBOL.format(cartItem.unitPrice),
+            totalLine: CURRENCY_SYMBOL.format(cartItem.totalLine),
+            quantity: cartItem.quantity,
+            discount: cartItem.discount
+        };
+    }
+    return {
+        unitPrice: CURRENCY_SYMBOL.format(item.unitPrice),
+        totalLine: CURRENCY_SYMBOL.format(item.unitPrice),
+        quantity: 1,
+        discount: 0
     };
 };

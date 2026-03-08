@@ -46,7 +46,7 @@ function renderSuccessState(quotation, globalBanks) {
             itemsUi
         ),
         customerUi.modal,
-        itemsUi.modal
+        itemsUi.modalWidget
         // Here is where modals should be naturally
     );
 }
