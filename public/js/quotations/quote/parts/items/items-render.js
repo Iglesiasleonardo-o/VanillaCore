@@ -27,6 +27,18 @@ function setupEvents(quotation) {
     const TAX_RATE = globalState.company.taxRate;
     const ITEMS_LENGTH = 50;
 
+    function updateQuotationTotals(totals) {
+        $(`lblSubtotal`).textContent = formatByCurrencySymbol(totals.subtotal);
+        $(`lblVat`).textContent = formatByCurrencySymbol(totals.taxTotal);
+        $(`lblTotal`).textContent = formatByCurrencySymbol(totals.grandTotal);
+    }
+
+    const refreshTotals = (oldSubtotal, newSubtotal) => {
+        const quoteTotals = quotation.totals;
+        applyTotalDelta(quoteTotals, oldSubtotal, newSubtotal, TAX_RATE);
+        updateQuotationTotals(quoteTotals);
+    };
+
     const setupInfiniteScrollObserver = (targetElement, itemsList) => {
         if (modalObserver) {
             modalObserver.disconnect();
@@ -77,8 +89,6 @@ function setupEvents(quotation) {
     };
 
     // Helper: Explicitly accepts item to avoid reference errors
-
-
     const handleLineUpdate = (item, newQty, newDisc) => {
         // 1. Calculate deltas based on current item object state
         const oldSubtotal = item.totalLine;
@@ -100,9 +110,7 @@ function setupEvents(quotation) {
         $(`total-line-${itemRef}`).textContent = formatByCurrency(newVals.subtotal);
 
         // 4. Update Global Totals (O(1) Delta)
-        const quoteTotals = quotation.totals;
-        applyTotalDelta(quoteTotals, oldSubtotal, newVals.subtotal, TAX_RATE);
-        updateQuotationTotals(quoteTotals);
+        refreshTotals(oldSubtotal, newVals.subtotal);
     };
 
     const updateUIAndState = (item, newQty, newDisc, initialVals) => {
@@ -134,17 +142,9 @@ function setupEvents(quotation) {
             quoteItem.taxRate = initialVals.tax;
 
             // 3. Update Totals
-            const quoteTotals = quotation.totals;
-            applyTotalDelta(quoteTotals, oldSubtotal, initialVals.subtotal, TAX_RATE);
-            updateQuotationTotals(quoteTotals);
+            refreshTotals(oldSubtotal, initialVals.subtotal);
         }
     };
-
-    function updateQuotationTotals(totals) {
-        $(`lblSubtotal`).textContent = formatByCurrencySymbol(totals.subtotal);
-        $(`lblVat`).textContent = formatByCurrencySymbol(totals.taxTotal);
-        $(`lblTotal`).textContent = formatByCurrencySymbol(totals.grandTotal);
-    }
 
     const events = {
         modal: {
@@ -227,16 +227,9 @@ function setupEvents(quotation) {
                         return; // Sai da função cedo, não há nada para renderizar
                     }
 
-                    // Se encontrou resultados, atualiza o cursor para o último item desta nova lista
                     currentCursor = results[results.length - 1].name;
 
-                    // Mapeia os itens que já estão no carrinho
-                    const cartItems = {};
-                    quotation.items.forEach(item => {
-                        cartItems[item.ref] = item;
-                    });
-
-                    // Renderiza e injeta os novos resultados
+                    const cartItems = buildCartItems(item);
                     results.forEach(item => {
                         const cartItem = cartItems[item.ref];
                         const viewData = toModalViewModel(cartItem, item);
@@ -283,13 +276,7 @@ function setupEvents(quotation) {
                     tbody.textContent = "";
                 }
                 tbody.appendChild(newRow);
-
-                // 7. Update Global Totals using the Delta Logic
-                // We pass 0 as the old subtotal because we are adding a brand new item
-                applyTotalDelta(quotation.totals, 0, initialVals.subtotal, TAX_RATE);
-
-                // 8. Update Totals UI
-                updateQuotationTotals(quotation.totals);
+                refreshTotals(0, initialVals.subtotal);
             },
             onRemoveItem: (item) => {
                 // 1. Toggle UI buttons
@@ -466,3 +453,11 @@ const sanitizeDiscount = (value) => {
     const num = Number(value);
     return (isNaN(num) || num < 0 || num > 100) ? 0 : num;
 };
+
+const buildCartItems = (item) => {
+    const cartItems = {};
+    quotation.items.forEach(item => {
+        cartItems[item.ref] = item;
+    });
+    return cartItems;
+}
