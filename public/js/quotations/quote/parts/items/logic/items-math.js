@@ -15,3 +15,13 @@ export const applyTotalDelta = (totals, oldSubtotal, newSubtotal, taxRate) => {
     totals.taxTotal = totals.subtotal * taxRate;
     totals.grandTotal = totals.subtotal + totals.taxTotal;
 };
+
+export const sanitizeQuantity = (value) => {
+    const num = Number(value);
+    return (isNaN(num) || num < 1) ? 1 : num;
+};
+
+export const sanitizeDiscount = (value) => {
+    const num = Number(value);
+    return (isNaN(num) || num < 0 || num > 100) ? 0 : num;
+};
