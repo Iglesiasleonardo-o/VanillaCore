@@ -52,7 +52,7 @@ export function ItemsTableWidget(events, quoteItems, toQuoteRowViewModel) {
     );
 }
 
-export function TotalsWidget(events, formatedSubtotal, formatedTaxTotal, formatedGrandTotal) {
+export function TotalsWidget(events, viewModel) {
     return div({ className: "w-1/2 max-w-xs text-sm" }).Append(
         div({ className: "space-y-2" }).Append(
             div({ className: "flex items-center justify-between border-b border-gray-200 pb-2 mb-2 no-print" }).Append(
@@ -75,14 +75,14 @@ export function TotalsWidget(events, formatedSubtotal, formatedTaxTotal, formate
                 span({ className: "text-gray-600", textContent: "Subtotal:" }),
                 div().Append(span({
                     id: "lblSubtotal",
-                    className: "font-medium text-gray-800", textContent: formatedSubtotal
+                    className: "font-medium text-gray-800", textContent: viewModel.subtotal
                 }))
             ),
             div({ className: "flex justify-between" }).Append(
                 span({ className: "text-gray-600", textContent: "IVA (16%):" }),
                 div().Append(span({
                     id: "lblVat",
-                    className: "font-medium text-gray-800", textContent: formatedTaxTotal
+                    className: "font-medium text-gray-800", textContent: viewModel.taxTotal
                 }))
             ),
 
@@ -90,7 +90,7 @@ export function TotalsWidget(events, formatedSubtotal, formatedTaxTotal, formate
                 span({ className: "font-bold text-lg text-gray-900", textContent: "Total:" }),
                 div().Append(span({
                     id: "lblTotal",
-                    className: "font-bold text-lg text-blue-600", textContent: formatedGrandTotal
+                    className: "font-bold text-lg text-blue-600", textContent: viewModel.grandTotal
                 }))
             )
         )

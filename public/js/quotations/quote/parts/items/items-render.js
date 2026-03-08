@@ -1,5 +1,7 @@
+import { globalState } from "../../../../vanilla-core/vanilla-global-state.js";
 import { BottomLoader, EmptySearchState, EmptyTableState, ItemsModalWidget, ItemsTableWidget, ModalItem, QuoteRow, TotalsWidget } from "./items-viewgen.js";
-import { CURRENCY, CURRENCY_SYMBOL } from "./logic/items-math.js";
+import { formatByCurrency, formatByCurrencySymbol, toModalViewModel, toQuoteRowViewModel, toTotalsViewModel } from "./items-viewmodel.js";
+import { applyTotalDelta, calculateLineTotals } from "./logic/items-math.js";
 import { loadProductsData } from "./logic/items-network.js";
 
 // UI STATE
@@ -14,19 +16,15 @@ export function setupItemsModule(quotation) {
     const events = setupEvents(quotation);
     const tableWidget = ItemsTableWidget(events, quoteItems, toQuoteRowViewModel);
 
-    const quoteTotals = quotation.totals;
-    const formatedSubtotal = CURRENCY_SYMBOL.format(quoteTotals.subtotal);
-    const formatedTaxTotal = CURRENCY_SYMBOL.format(quoteTotals.taxTotal);
-    const formatedGrandTotal = CURRENCY_SYMBOL.format(quoteTotals.grandTotal);
-
-    const totalsWidget = TotalsWidget(events.row, formatedSubtotal, formatedTaxTotal, formatedGrandTotal);
+    const totalsViewModel = toTotalsViewModel(quotation.totals);
+    const totalsWidget = TotalsWidget(events.row, totalsViewModel);
     const modalWidget = ItemsModalWidget(events.modal);
 
     return { tableWidget, totalsWidget, modalWidget };
 }
 
 function setupEvents(quotation) {
-    const TAX_RATE = 0.16;
+    const TAX_RATE = globalState.company.taxRate;
     const ITEMS_LENGTH = 50;
 
     const setupInfiniteScrollObserver = (targetElement, itemsList) => {
@@ -62,12 +60,12 @@ function setupEvents(quotation) {
                 });
             }
 
-            if (newResults.length < ITEMS_LENGTH) {
-
-            } else {
-                // We have a full batch, attach observer to the NEW last element
+            // Check if we have a full batch to trigger the observer
+            if (newResults.length >= ITEMS_LENGTH) {
                 const newLastItem = itemsList.lastElementChild;
-                if (newLastItem) modalObserver.observe(newLastItem);
+                if (newLastItem) {
+                    modalObserver.observe(newLastItem);
+                }
             }
         }, {
             root: itemsList,
@@ -79,15 +77,12 @@ function setupEvents(quotation) {
     };
 
     // Helper: Explicitly accepts item to avoid reference errors
-    const calculateLine = (item, qty, disc) => {
-        const subtotal = (item.unitPrice * qty) * (1 - (disc / 100));
-        return { subtotal, tax: subtotal * TAX_RATE };
-    };
+
 
     const handleLineUpdate = (item, newQty, newDisc) => {
         // 1. Calculate deltas based on current item object state
-        const oldVals = calculateLine(item, item.quantity, item.discount);
-        const newVals = calculateLine(item, newQty, newDisc);
+        const oldSubtotal = item.totalLine;
+        const newVals = calculateLineTotals(item.unitPrice, newQty, newDisc, TAX_RATE);
 
         // 2. Update item source of truth
         item.quantity = newQty;
@@ -102,16 +97,11 @@ function setupEvents(quotation) {
         $(`disc-${itemRef}`).value = newDisc;
         $(`disc-print-${itemRef}`).textContent = newDisc;
 
-        // Use currency formatter to match unitPrice style
-        $(`total-line-${itemRef}`).textContent = CURRENCY.format(newVals.subtotal.toFixed(2));
+        $(`total-line-${itemRef}`).textContent = formatByCurrency(newVals.subtotal);
 
         // 4. Update Global Totals (O(1) Delta)
         const quoteTotals = quotation.totals;
-        quoteTotals.subtotal += (newVals.subtotal - oldVals.subtotal);
-        quoteTotals.taxTotal += (newVals.tax - oldVals.tax);
-        quoteTotals.grandTotal = quoteTotals.subtotal + quoteTotals.taxTotal;
-
-        // 5. Update Labels
+        applyTotalDelta(quoteTotals, oldSubtotal, newVals.subtotal, TAX_RATE);
         updateQuotationTotals(quoteTotals);
     };
 
@@ -120,7 +110,8 @@ function setupEvents(quotation) {
         const itemRef = item.ref;
         // Modal
         $(`modal-qty-${itemRef}`).value = newQty;
-        $(`modal-total-line-${itemRef}`).textContent = CURRENCY_SYMBOL.format(initialVals.subtotal.toFixed(2));
+        $(`modal-total-line-${itemRef}`).textContent =
+            formatByCurrencySymbol(initialVals.subtotal);
 
         // Main Table
         const quoteQtyInput = $(`qty-${itemRef}`);
@@ -129,7 +120,8 @@ function setupEvents(quotation) {
             $(`qty-print-${itemRef}`).textContent = newQty;
             $(`disc-${itemRef}`).value = newDisc;
             $(`disc-print-${itemRef}`).textContent = newDisc;
-            $(`total-line-${itemRef}`).textContent = CURRENCY.format(initialVals.subtotal.toFixed(2));
+
+            $(`total-line-${itemRef}`).textContent = formatByCurrency(initialVals.subtotal);
 
 
             // 2. Update Data Source
@@ -143,18 +135,15 @@ function setupEvents(quotation) {
 
             // 3. Update Totals
             const quoteTotals = quotation.totals;
-            quoteTotals.subtotal = (quoteTotals.subtotal - oldSubtotal) + initialVals.subtotal;
-            quoteTotals.taxTotal = quoteTotals.subtotal * TAX_RATE;
-            quoteTotals.grandTotal = quoteTotals.subtotal + quoteTotals.taxTotal;
-
+            applyTotalDelta(quoteTotals, oldSubtotal, initialVals.subtotal, TAX_RATE);
             updateQuotationTotals(quoteTotals);
         }
     };
 
     function updateQuotationTotals(totals) {
-        $(`lblSubtotal`).textContent = CURRENCY_SYMBOL.format(totals.subtotal);
-        $(`lblVat`).textContent = CURRENCY_SYMBOL.format(totals.taxTotal);
-        $(`lblTotal`).textContent = CURRENCY_SYMBOL.format(totals.grandTotal);
+        $(`lblSubtotal`).textContent = formatByCurrencySymbol(totals.subtotal);
+        $(`lblVat`).textContent = formatByCurrencySymbol(totals.taxTotal);
+        $(`lblTotal`).textContent = formatByCurrencySymbol(totals.grandTotal);
     }
 
     const events = {
@@ -196,8 +185,6 @@ function setupEvents(quotation) {
                 if (results.length === ITEMS_LENGTH) {
                     const lastItem = itemsList.lastElementChild;
                     setupInfiniteScrollObserver(lastItem, itemsList);
-                } else {
-
                 }
             },
             onClose: () => {
@@ -256,12 +243,10 @@ function setupEvents(quotation) {
                         itemsList.appendChild(ModalItem(!!cartItem, item, viewData, events.modal));
                     });
 
-                    // Verifica se precisamos do Observer ou da EndMessage
+                    // Verifica se precisamos do Observer
                     if (results.length === ITEMS_LENGTH) {
                         const lastItem = itemsList.lastElementChild;
                         setupInfiniteScrollObserver(lastItem, itemsList);
-                    } else {
-
                     }
                 }, 300); // 300ms de atraso
             },
@@ -271,53 +256,40 @@ function setupEvents(quotation) {
                 $(`modal-remove-btn-${item.ref}`).classList.toggle("hidden");
                 $(`modal-add-btn-${item.ref}`).classList.toggle("hidden");
 
-                // 2. Prepare the new Quote Item object (Source of Truth)
+                // 2. Prepare the new Quote Item object
                 const quoteItem = {
                     ...item,
                     quantity: parseFloat($(`modal-qty-${item.ref}`).value) || 1,
                     discount: parseFloat($(`modal-disc-${item.ref}`).value) || 0,
-                    taxRate: TAX_RATE * 100 // Based on your TAX_RATE constant (0.16 -> 16%)
+                    taxRate: TAX_RATE
                 };
 
-                // 3. Calculate initial values using your helper
-                const initialVals = calculateLine(quoteItem, quoteItem.quantity, quoteItem.discount);
+                // 3. Calculate initial values
+                const initialVals = calculateLineTotals(quoteItem.unitPrice, quoteItem.quantity, quoteItem.discount, TAX_RATE);
                 quoteItem.totalLine = initialVals.subtotal;
 
                 // 4. Update the Modal UI Total
-                $(`modal-total-line-${item.ref}`).textContent = CURRENCY_SYMBOL.format(initialVals.subtotal.toFixed(2));
+                $(`modal-total-line-${item.ref}`).textContent = formatByCurrencySymbol(initialVals.subtotal);
 
                 // 5. Update Global State
                 quotation.items.push(quoteItem);
 
-                // 6. Render and Inject into Main Table
-                // Create the formatted view data expected by QuoteRow
-                const viewData = {
-                    unitPrice: CURRENCY.format(quoteItem.unitPrice),
-                    totalLine: CURRENCY.format(quoteItem.totalLine)
-                };
-
-                // Generate the DOM node
-                const newRow = QuoteRow(quoteItem, viewData, events.row);
-
-                // Select your table body (you may need to add an ID to your tbody if you don't have one)
+                // 6. Generate and Append the DOM node
+                const newRow = QuoteRow(quoteItem, toQuoteRowViewModel(quoteItem), events.row);
                 const tbody = $("items-tbody");
 
                 // Handle Empty State Removal
-                // If this is the first item, clear out the EmptyTableState placeholder
                 if (quotation.items.length === 1) {
                     tbody.textContent = "";
                 }
-
                 tbody.appendChild(newRow);
 
-                // 8. Update Global Totals
-                const quoteTotals = quotation.totals;
-                quoteTotals.subtotal += initialVals.subtotal;
-                quoteTotals.taxTotal += initialVals.tax;
-                quoteTotals.grandTotal = quoteTotals.subtotal + quoteTotals.taxTotal;
+                // 7. Update Global Totals using the Delta Logic
+                // We pass 0 as the old subtotal because we are adding a brand new item
+                applyTotalDelta(quotation.totals, 0, initialVals.subtotal, TAX_RATE);
 
-                // 9. Update Totals UI
-                updateQuotationTotals(quoteTotals);
+                // 8. Update Totals UI
+                updateQuotationTotals(quotation.totals);
             },
             onRemoveItem: (item) => {
                 // 1. Toggle UI buttons
@@ -330,8 +302,9 @@ function setupEvents(quotation) {
                 $(`modal-disc-${item.ref}`).value = 0;
 
                 // 3. Reset the modal's line total label back to 1x unit price
-                const defaultVals = calculateLine(item, 1, 0);
-                $(`modal-total-line-${item.ref}`).textContent = CURRENCY_SYMBOL.format(defaultVals.subtotal.toFixed(2));
+                const defaultVals = calculateLineTotals(item.unitPrice, 1, 0, TAX_RATE);
+                $(`modal-total-line-${item.ref}`).textContent =
+                    formatByCurrencySymbol(defaultVals.subtotal);
 
                 // 4. THE FIX: Find the actual stateful item that has the quantity/discount data
                 const cartItem = quotation.items.find(i => i.ref === item.ref);
@@ -342,7 +315,7 @@ function setupEvents(quotation) {
             onQtyAdd: (item) => {
                 const newQty = Number($(`modal-qty-${item.ref}`).value) + 1;
                 const newDisc = Number($(`modal-disc-${item.ref}`).value);
-                const initialVals = calculateLine(item, newQty, newDisc);
+                const initialVals = calculateLineTotals(item.unitPrice, newQty, newDisc, TAX_RATE);
 
                 updateUIAndState(item, newQty, newDisc, initialVals);
             },
@@ -354,24 +327,19 @@ function setupEvents(quotation) {
 
                 const newQty = currentQty - 1;
                 const newDisc = Number($(`modal-disc-${item.ref}`).value);
-                const initialVals = calculateLine(item, newQty, newDisc);
+                const initialVals = calculateLineTotals(item.unitPrice, newQty, newDisc, TAX_RATE);
 
                 updateUIAndState(item, newQty, newDisc, initialVals);
             },
             onQtyChange: (e, item) => {
                 const input = e.target;
-                let val = Number(input.value);
-
-                // Failsafe: Reset to 1 if invalid
-                if (isNaN(val) || val < 1) {
-                    val = 1;
-                    input.value = val;
-                }
+                const safeQty = sanitizeQuantity(input.value);
+                input.value = safeQty; // Update UI first
 
                 const newDisc = Number($(`modal-disc-${item.ref}`).value);
-                const initialVals = calculateLine(item, val, newDisc);
+                const initialVals = calculateLineTotals(item.unitPrice, safeQty, newDisc, TAX_RATE);
 
-                updateUIAndState(item, val, newDisc, initialVals);
+                updateUIAndState(item, safeQty, newDisc, initialVals);
             },
             onDiscAdd: (item) => {
                 const currentDisc = Number($(`modal-disc-${item.ref}`).value);
@@ -379,7 +347,7 @@ function setupEvents(quotation) {
                 if (currentDisc < 100) {
                     const newDisc = currentDisc + 1;
                     const newQty = Number($(`modal-qty-${item.ref}`).value);
-                    const initialVals = calculateLine(item, newQty, newDisc);
+                    const initialVals = calculateLineTotals(item.unitPrice, newQty, newDisc, TAX_RATE);
 
                     $(`modal-disc-${item.ref}`).value = newDisc;
                     updateUIAndState(item, newQty, newDisc, initialVals);
@@ -387,25 +355,18 @@ function setupEvents(quotation) {
             },
             onDiscChange: (e, item) => {
                 const input = e.target;
-                let val = Number(input.value);
-
-                // Failsafe: Reset to 0 if invalid
-                if (isNaN(val) || val < 0 || val > 100) {
-                    val = 0;
-                    input.value = val;
-                }
-
+                const safeDisc = sanitizeDiscount(input.value);
+                input.value = safeDisc; // Update UI first
                 const newQty = Number($(`modal-qty-${item.ref}`).value);
-                const initialVals = calculateLine(item, newQty, val);
-
-                updateUIAndState(item, newQty, val, initialVals);
+                const initialVals = calculateLineTotals(item.unitPrice, newQty, safeDisc, TAX_RATE);
+                updateUIAndState(item, newQty, safeDisc, initialVals);
             },
             onDiscRemove: (item) => {
                 const currentDisc = Number($(`modal-disc-${item.ref}`).value);
                 if (currentDisc > 0) {
                     const newDisc = currentDisc - 1;
                     const newQty = Number($(`modal-qty-${item.ref}`).value);
-                    const initialVals = calculateLine(item, newQty, newDisc);
+                    const initialVals = calculateLineTotals(item.unitPrice, newQty, newDisc, TAX_RATE);
 
                     $(`modal-disc-${item.ref}`).value = newDisc;
                     updateUIAndState(item, newQty, newDisc, initialVals);
@@ -413,18 +374,11 @@ function setupEvents(quotation) {
             },
         },
         row: {
-            // --- QTY ---
             onQtyChange: (e, item) => {
                 const input = e.target;
-                let val = Number(input.value);
-
-                // Failsafe: Reset to 1
-                if (isNaN(val) || val < 1) {
-                    val = 1;
-                    input.value = val;
-                }
-
-                handleLineUpdate(item, val, item.discount);
+                const safeQty = sanitizeQuantity(input.value);
+                input.value = safeQty; // Update UI first
+                handleLineUpdate(item, safeQty, item.discount);
             },
             onQtyAdd: (item) => {
                 handleLineUpdate(item, item.quantity + 1, item.discount)
@@ -433,19 +387,11 @@ function setupEvents(quotation) {
                 if (item.quantity <= 1) return;
                 handleLineUpdate(item, item.quantity - 1, item.discount);
             },
-
-            // --- DISC ---
             onDiscChange: (e, item) => {
                 const input = e.target;
-                let val = Number(input.value);
-
-                // Failsafe: Reset to 0
-                if (isNaN(val) || val < 0 || val > 100) {
-                    val = 0;
-                    input.value = val;
-                }
-
-                handleLineUpdate(item, item.quantity, val);
+                const safeDisc = sanitizeDiscount(input.value);
+                input.value = safeDisc; // Update UI first
+                handleLineUpdate(item, item.quantity, safeDisc);
             },
             onDiscAdd: (e, item) => {
                 if (item.discount < 100) {
@@ -511,24 +457,12 @@ function setupEvents(quotation) {
     return events;
 }
 
-const toQuoteRowViewModel = (quoteItem) => ({
-    unitPrice: CURRENCY_SYMBOL.format(quoteItem.unitPrice),
-    totalLine: CURRENCY_SYMBOL.format(quoteItem.totalLine)
-});
+const sanitizeQuantity = (value) => {
+    const num = Number(value);
+    return (isNaN(num) || num < 1) ? 1 : num;
+};
 
-const toModalViewModel = (cartItem, item) => {
-    if (cartItem) {
-        return {
-            unitPrice: CURRENCY_SYMBOL.format(cartItem.unitPrice),
-            totalLine: CURRENCY_SYMBOL.format(cartItem.totalLine),
-            quantity: cartItem.quantity,
-            discount: cartItem.discount
-        };
-    }
-    return {
-        unitPrice: CURRENCY_SYMBOL.format(item.unitPrice),
-        totalLine: CURRENCY_SYMBOL.format(item.unitPrice),
-        quantity: 1,
-        discount: 0
-    };
+const sanitizeDiscount = (value) => {
+    const num = Number(value);
+    return (isNaN(num) || num < 0 || num > 100) ? 0 : num;
 };

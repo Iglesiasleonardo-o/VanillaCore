@@ -12,6 +12,7 @@ export let globalState = {
         country: "Moçambique",
         nuit: "401956298",
         logo_url: "https://storage.cdn.com/logos/inovitek.png",
+        taxRate: 0.16,
         bankAccounts: [
             {
                 id: 1,
