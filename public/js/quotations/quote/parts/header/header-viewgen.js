@@ -1,13 +1,10 @@
 import { div, h2, header, img, input, option, p, RichElement, select, span } from "../../../../shared/viewgencore.js";
 
-export function HeaderView(quotation, events) {
-    const { issuer, metadata } = quotation;
-
-    // 1. Declare local references
-    let printDate, printExpiry, uiExpiry, dateInput, otherInput, validitySelect, sellerSpan;
+export function HeaderView(quotation, viewModel, events) {
+    const { issuer } = quotation;
 
     // 2. The Unbroken Tree (Captured Inline)
-    const root = header({ className: "flex justify-between items-start border-gray-200" }).Append(
+    return header({ className: "flex justify-between items-start border-gray-200" }).Append(
         CompanyInfo(issuer),
         div({ className: "flex flex-col items-end text-right" }).Append(
             img({
@@ -17,36 +14,73 @@ export function HeaderView(quotation, events) {
             div({ className: "mt-0 space-y-1 text-sm" }).Append(
                 // Data Row
                 MetadataRow("Data:",
-                    (printDate = span({ className: "print-only hidden" })),
-                    (dateInput = input({ type: "date", onchange: events.onDateChange, className: "no-print text-sm border-gray-300 rounded-md py-0 px-1 text-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500" }))
+                    span({ id: "printDate", className: "print-only hidden" }),
+                    input({
+                        id: "dateInput", type: "date",
+                        value: quotation.issueDate,
+                        onchange: events.onDateChange,
+                        className: "no-print text-sm border-gray-300 rounded-md py-0 px-1 text-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    })
                 ),
                 // Validade Row
                 MetadataRow("Válida até:",
-                    (printExpiry = span({ className: "print-only hidden" })),
-                    div({ className: "no-print -mt-1.5" }).Append(
-                        (validitySelect = select({ onchange: (e) => events.onValidityChange(e, otherInput), className: "w-full text-sm border-gray-300 rounded-md py-0.5 px-2 focus:outline-none focus:ring-1 focus:ring-blue-500" }).Append(
-                            option({ value: "7", textContent: "7 dias" }),
-                            option({ value: "15", textContent: "15 dias" }),
-                            option({ value: "30", textContent: "30 dias" }),
-                            option({ value: "120", textContent: "120 dias" }),
-                            option({ value: "outro", textContent: "Outro" })
-                        )),
-                        (otherInput = input({ type: "number", placeholder: "Ex: 45", oninput: events.onOtherInput, className: "mt-1 w-full text-sm border-gray-300 rounded-md py-0.5 px-2 focus:outline-none focus:ring-1 focus:ring-blue-500" })),
-                        (uiExpiry = span({ className: "mt-0.5 text-xs text-gray-500 block" }))
-                    )
+                    span({ id: "printExpiry", className: "print-only hidden" }),
+                    ValidityWrapper(viewModel, events)
                 ),
                 // Vendedor Row
                 MetadataRow("Vendedor:",
-                    (sellerSpan = span({ className: "text-gray-600" }))
+                    span({ id: "sellerSpan", className: "text-gray-600", innerText: viewModel.seller })
                 )
             )
         )
     );
-
-    return { root, views: { printDate, printExpiry, uiExpiry, dateInput, otherInput, validitySelect, sellerSpan } };
 }
 
 // --- STATIC HELPERS ---
+function ValidityWrapper(viewModel, events) {
+    const { expiryDays, standardDays } = viewModel;
+    
+    let isManual = true;
+
+    const validitySelect = select({
+        id: "validitySelect",
+        onchange: (e) => events.onValidityChange(e),
+        className: "w-full text-sm border-gray-300 rounded-md py-0.5 px-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+    });
+
+    standardDays.forEach(day => {
+        const isMatch = (day == expiryDays);
+        if (isMatch) isManual = false;
+
+        validitySelect.Append(option({
+            id: `validity-${day}`,
+            value: day,
+            textContent: `${day} dias`,
+            selected: isMatch
+        }));
+    });
+
+    validitySelect.Append(option({
+        value: "outro",
+        textContent: "Outro",
+        selected: isManual
+    }));
+
+    return div({ className: "no-print -mt-1.5" }).Append(
+        validitySelect,
+        input({
+            id: "otherInput",
+            type: "number",
+            placeholder: "Ex: 45",
+            oninput: events.onOtherInput,
+            className: `${isManual ? "" : "hidden"} mt-1 w-full text-sm border-gray-300 rounded-md py-0.5 px-2 focus:outline-none focus:ring-1 focus:ring-blue-500`,
+            value: isManual ? expiryDays : ""
+        }),
+        span({ id: "uiExpiry", className: "mt-0.5 text-xs text-gray-500 block", innerText: viewModel.expiryLabel })
+    );
+}
+
+
 function CompanyInfo(issuer) {
     return div({ className: "text-xs text-gray-700" }).Append(
         h2({ className: "font-bold text-lg text-gray-900 mb-2", textContent: issuer.name }),

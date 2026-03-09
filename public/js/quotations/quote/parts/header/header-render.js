@@ -1,62 +1,49 @@
 import { HeaderView } from "./header-viewgen.js";
-import { createHeaderState } from "./logic/header-data-state.js";
+import { createHeaderViewModel } from "./header-viewmodel.js";
 import { calculateExpiryDate, formatToDisplayDate } from "./logic/header-math.js";
 
 export function setupA4Header(quotation) {
-    const state = createHeaderState(quotation);
-    const events = setupEvents(state);
-    const { root, views } = HeaderView(quotation, events);
-    observeState(state, views);
-    return root;
+    const viewModel = createHeaderViewModel(quotation);
+    const events = setupEvents();
+    return HeaderView(quotation, viewModel, events);
 }
 
-function observeState(state, {
-    printDate, dateInput, printExpiry, uiExpiry,
-    validitySelect, otherInput, sellerSpan
-}) {
-    state.on("issueDate", (issueDate) => {
-        printDate.textContent = formatToDisplayDate(issueDate);
-        dateInput.value = issueDate;
-    });
+const updateUI = () => {
+    const issueDate = $("dateInput").value;
+    const select = $("validitySelect");
+    const otherInput = $("otherInput");
 
-    state.on("expiryDate", (expiryDate) => {
-        printExpiry.textContent = expiryDate;
-        uiExpiry.textContent = `Válida até: ${expiryDate}`;
-    });
+    // Determine days: if "outro", read the number input; otherwise, read the select
+    const days = select.value === "outro" ? (otherInput.value || 0) : select.value;
+    const expiryDate = calculateExpiryDate(issueDate, Number(days));
 
-    state.on("seller", (name) => {
-        sellerSpan.textContent = name || "Anónimo";
-    });
+    // Sync display elements
+    $("printExpiry").textContent = expiryDate;
+    $("uiExpiry").textContent = `Válida até: ${expiryDate}`;
+};
 
-    state.on("expiryDays", (days) => {
-        const isStandard = ["7", "15", "30", "120"].includes(days.toString());
-        const isManualMode = validitySelect.value === "outro" || !isStandard;
-        otherInput.classList.toggle("hidden", !isManualMode);
-        validitySelect.value = isManualMode ? "outro" : days;
-    });
-}
+function setupEvents() {
+    return {
+        onDateChange: () => {
+            $("printDate").textContent = formatToDisplayDate($("dateInput").value);
+            updateUI();
+        },
+        onOtherInput: () => {
+            updateUI();
+        },
+        onValidityChange: (e) => {
+            const selectValue = e.target.value;
+            const otherInput = $("otherInput");
 
-// --- Events Factory ---
-const setupEvents = state => ({
-    onDateChange: e => {
-        state.issueDate = e.target.value;
-        state.expiryDate = calculateExpiryDate(state.issueDate, state.expiryDays);
-    },
-    onOtherInput: e => {
-        state.expiryDays = parseInt(e.target.value) || 0;
-        state.expiryDate = calculateExpiryDate(state.issueDate, state.expiryDays);
-    },
-    onValidityChange: (e, otherInput) => {
-        const isOther = e.target.value === "outro";
-
-        if (isOther) {
-            state.expiryDays = parseInt(otherInput.value) || 0;
-            // Now that the Observer has removed '.hidden', focus works!
-            otherInput.focus();
-            otherInput.select();
-        } else {
-            state.expiryDays = parseInt(e.target.value);
+            if (selectValue === "outro") {
+                otherInput.classList.remove("hidden");
+                otherInput.focus();
+                otherInput.select();
+            } else {
+                otherInput.classList.add("hidden");
+                otherInput.value = "";
+                updateUI();
+            }
         }
-        state.expiryDate = calculateExpiryDate(state.issueDate, state.expiryDays);
-    }
-});
+    };
+}
