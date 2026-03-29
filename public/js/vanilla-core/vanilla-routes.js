@@ -1,5 +1,5 @@
 // import { loadQuotationByURLEvent } from '../quotations/quotation/quotation-events.js';
-import { loadQuotationByURLEvent } from "../quotations/quote/quote-render.js"
+import { loadQuotationByURLEvent } from "../quotations/quotation/quotation-render.js"
 
 export const routes = {
     // "/quotations/:quotationNumber": loadQuotationByURLEvent,

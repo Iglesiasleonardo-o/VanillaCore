@@ -1,12 +1,13 @@
 import { globalState } from "../../vanilla-core/vanilla-global-state.js";
 import { RenderView } from "../../vanilla-core/vanilla-render.js";
-import { fetchQuotation } from "./logic/network.js";
+import { fetchQuotation } from "./quotation-network.js";
 import { setupCustomerModule } from "./parts/customer/customer-render.js";
 import { setupA4Header } from "./parts/header/header-render.js";
 import { setupItemsModule } from "./parts/items/items-render.js";
 import { setupPaymentTermsModule } from "./parts/terms/terms-render.js";
 import { setupNavigationToolbar } from "./parts/toolbar/toolbar-render.js";
-import { A4Sheet, LoadingState, QuotationNotFound } from "./quote-viewgen.js";
+import { A4Sheet, LoadingState, QuotationNotFound } from "./quotation-viewgen.js";
+import { setupConditionsModule } from "./parts/conditions/conditions-render.js";
 
 export async function loadQuotationByURLEvent() {
     const quotationNumber = location.pathname.split('/')[2];
@@ -46,6 +47,7 @@ function renderSuccessState(quotation, globalBanks) {
             setupA4Header(quotation),
             customerUi.widget,
             itemsUi,
+            setupConditionsModule(quotation),
             paymentTermsUi.widget
         ),
         customerUi.modal,

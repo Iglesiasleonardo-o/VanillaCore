@@ -68,7 +68,7 @@ function buildEntryHTML(data) {
     </div>
     
     <script>const $ = (elementId) => document.getElementById(elementId);</script>
-    <script type="module" src="/public/js/vanilla-core/vanilla-events.js"></script>
+    <script type="module" src="/public/js/vanilla-core/vanilla-render.js"></script>
 </body>
 `
 }

@@ -1,8 +1,4 @@
-import {
-    div, header, footer, section, h1, h2, h3, h4, p,
-    button, span, i, a, img, input, select, option, textarea,
-    table, thead, tbody, tr, th, td, RichElement
-} from "../../shared/viewgencore.js";
+import { a, button, div, footer, h2, p, RichElement, span } from "../../shared/viewgencore.js";
 
 export function LoadingState() {
     return div({
@@ -59,7 +55,7 @@ export function QuotationNotFound() {
 }
 
 // 2. A4 DOCUMENT STRUCTURE
-export function A4Sheet(headerView, customerView, itemsView, paymentTermsWidget) {
+export function A4Sheet(headerView, customerView, itemsView, conditionsWidget, paymentTermsWidget) {
     return div({
         id: "a4Page",
         className: "mt-10 mb-20 w-[210mm] min-h-[297mm] bg-white rounded-lg shadow-lg mx-auto p-12 border border-gray-200 border-t"
@@ -69,12 +65,10 @@ export function A4Sheet(headerView, customerView, itemsView, paymentTermsWidget)
         itemsView.tableWidget,
         footer({ className: "pt-4 border-gray-200" }).Append(
             div({ className: "flex justify-between items-start gap-8" }).Append(
-                // Condicoes gerais aqui
-                div({ className: "w-1/2" }).Append(),
+                conditionsWidget,
                 itemsView.totalsWidget
             ),
-            paymentTermsWidget
-            // Metodos de pagamento aqui
+            paymentTermsWidget,
         )
     );
 }
