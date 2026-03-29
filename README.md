@@ -37,7 +37,7 @@ Full-Stack Sandbox (Optional):
 VanillaCore follows a reactive, human-readable cycle without the "Fat Manager" overhead:
 
 1. **Network:** The "Messenger." The starting point. It fetches the raw "Truth" (Data Object) from the server or prepares it to be sent back.
-2. **Math:** The "Calculator." Processes the raw data. It performs pure business logic—like calculating IVA (tax) or totals—ensuring the Data Object is mathematically complete.
+2. **Math:** The "Calculator." Processes the raw data. It performs pure business logic-like calculating IVA (tax) or totals.
 3. **ViewModel:** The "Translator." A pure mapping layer. It takes the calculated data and translates it into "human-readable" strings (e.g., converting 2026-02-17 to 17/02/2026 or adding currency symbols).
 4. **ViewGen:** The "Factory." Takes the translated strings from the VM and manufactures 100% safe, real DOM nodes. It doesn't know why a label says "Paid"; it just builds the tag.
 5. **Render:** The "Diplomat." The final orchestrator. It is state-free and "dumb." It calls the previous steps in order and places the finished UI nodes into the document, while also managing the page lifecycle (navigation and cleanup).
