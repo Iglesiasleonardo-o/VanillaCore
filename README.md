@@ -1,16 +1,17 @@
 # VanillaCore
 
-A zero-dependency architecture for high-performance SPAs. VanillaCore proves that modern ES6+ features and a logic-centric pattern make bloated frameworks obsolete. No build tools, no npm-fatigue, just pure, documentable JavaScript.
+**A zero-dependency architecture for high-performance SPAs.**
+VanillaCore proves that modern ES6+ features and a logic-centric pattern make bloated frameworks obsolete. No build tools, no npm-fatigue, just pure, documentable JavaScript.
 
 ## Getting Started: No Install Required
 The **VanillaCore** architecture requires **no installation**. You can explore the core logic, documentation, and implementation examples directly by browsing the repository's public routes:
 * **Core Logic:** Check `public/js/shared/README.md` for the ViewGenCore documentation, including how it functions and various usage examples.
-* **Real-World Implementation:** See `public/js/quotations/quotation/parts/items/viewgen.js` to see a practical application of the ViewGenCore in action.
+* **Real-World Implementation:** See `public/js/quotations/quotation/parts/header/header-viewgen.js` to see a practical application of the ViewGenCore in action.
 
-If you wish to see the full-stack demonstration including the Node.js server environment, we've included a NodeJs server:
-1. **Clone:** `git clone https://github.com/Iglesiasleonardo-o/VanillaCore.git`
-2. **Install:** `npm install` (Only for the Node.js server example).
-3. **Run:** `npm start`
+Full-Stack Sandbox (Optional):
+1. `git clone https://github.com/Iglesiasleonardo-o/VanillaCore.git`
+2. `npm install` (Only for the Node.js server example).
+3. `npm start`
 
 > **Note:** The core architecture itself requires zero dependencies; the sandbox is provided for full-stack demonstration.
 
@@ -20,36 +21,28 @@ If you wish to see the full-stack demonstration including the Node.js server env
 | **Dependencies** | 0 | 1,000+ |
 | **Core Implementation** | ~5kB - 10kB | 150kB - 500kB+ |
 | **50-Route Scale** | < 500kB Total | 5MB - 10MB+ |
+| **State Tracking** | Native DOM | Virtual DOM / Proxy Observers |
 | **Build/Compile Time** | 0s (Native Refresh) | 2s - 30s+ (Wait for Build) |
-| **Rendering Strategy** | Direct DOM | Virtual DOM (Heavy Reconciliation) |
+| **Rendering Strategy** | Direct DOM | Heavy Reconciliation (Diffing) |
 | **Memory Management** | Auto-GC (DOM Level 0) | Manual Hooks/Cleanup Required |
 
 ## The Manifesto: The Framework-Free Web
 
 * **Performance Over Bloat:** We prioritize execution speed. A 500KB Vanilla project can serve millions of users more efficiently than a 5MB framework bundle.
 * **Low Cognitive Load:** The "Signpost" structure ensures that even with 100+ modules, the mental map remains flat and navigable.
-* **Contextual Isolation:** Logic is rarely shared permanently. Each view owns its behaviors to avoid the "Tangled Web" of global dependencies.
+* **Contextual Isolation:** Each view owns its behaviors. We avoid the "Tangled Web" of global dependencies.
 * **Signpost Naming:** No more searching through ten folders for one feature. Everything is grouped in "Parts" (e.g., `quotations.js` lives inside the `/quotations` folder).
 
 ## The Core Lifecycle
-VanillaCore follows a reactive, human-readable cycle. We avoid **"Fat Managers"** by ensuring each layer has a single responsibility:
+VanillaCore follows a reactive, human-readable cycle without the "Fat Manager" overhead:
 
-1. **Logic (L):** The "Brain." Home of the **Data State**.
-   * **data-state.js:** The local source of truth (the data that usually needs to be sent to the database).
-   * **math.js:** Pure business calculations.
-   * **network.js:** API communication and data fetching.
-2. **Events (E):** The "Senses." Slim listeners that trigger Logic and manage the **View State**, temporary UI data like spinners, search queries, or toggles.
-3. **ViewGen (V):** The "Factory." Pure functions that construct UI elements as 100% safe DOM nodes.
-4. **Render (R):** The "Diplomat." It is "dumb" and state-free. It speaks to the DOM, placing what ViewGen built exactly where it belongs.
+1. **ViewGen (V):** The "Factory." Pure functions that construct UI elements as 100% safe DOM nodes.
+2. **math.js:** Pure business calculations.
+3. **network.js:** API communication and data fetching.
+4. **ViewModel:** The "Translator." A pure function that prepares the Data Object for the View (formatting dates, currency, and conditional labels).
+5. **Render (R):** The "Diplomat." It is "dumb" and state-free. It speaks to the DOM, placing what ViewGen built exactly where it belongs.
 
 [Image of a software architecture diagram showing the separation of persistent data state and transient view state within a reactive loop]
-
-## Mechanical Sympathy: The Engine
-By aligning with how browsers actually work, we eliminate the middleman.
-
-* **The "No-Diff" Advantage:** We eliminate CPU-heavy "Reconciliation." State changes trigger Direct DOM Mutations.
-* **Automatic Garbage Collection:** By utilizing DOM Level 0 event properties, the browser automatically purges handlers when elements are removed. No "Zombie Listeners" or manual cleanup required.
-* **Zero Abstraction Tax:** You write the code the browser executes. No transpilors, no source maps, just instant execution.
 
 ## ViewGenCore: The Mechanical Sympathy Engine
 In `shared/viewgencore.js`, we utilize the ViewGenCore pattern to build complex interfaces using a nested `.Append()` structure. These are *real DOM nodes*, not strings, ensuring maximum performance and native security.
@@ -81,22 +74,18 @@ This structure keeps architectural logic separate from business routes, ensuring
 
 ```
 /src
-├── /shared                 # Universal UI DNA (div, paragraph, button types)
-│   └── components.js
-├── /quotations             # Feature Module (URL: /quotation)
-│   ├── /_parts             # Internal Arch: Events, Logic, Render, ViewGen
-│   │   ├── quotations.js   # The Signpost: Joins the sequence
-│   │   ├── /events         # Slim listeners & View State
-│   │   ├── /logic          # The Brain
-│   │   │   ├── data-state.js # Persistent Data (The Truth)
-│   │   │   ├── math.js     # Pure business logic
-│   │   │   └── network.js  # API/Fetch calls
-│   │   ├── /render         # DOM placement (The "Dumb" Painter)
-│   │   └── /viewgen        # Interface construction
-│   └── /parts              # Sub-Route Module (URL: /quotation/parts)
-│       └── ...             # Follows the same internal _parts structure
-├── router.js               # The Map
-└── app.js                  # The Engine
+├── /shared                # Universal UI DNA (viewgencore.js)
+├── /quotations            # Feature Module (URL: /quotation)
+│   ├── /_parts            # Internal Signpost (Flat Architecture)
+│   │   ├── viewmodel.js   # Data translation
+│   │   ├── viewgen.js     # UI construction
+│   │   ├── render.js      # DOM coordination
+│   │   ├── math.js        # Pure calculations
+│   │   └── network.js     # API/Fetch calls
+│   └── /parts             # Sub-Modules (URL: /quotation/parts/items)
+│       └── /items         # (Follows the same flat internal structure)
+├── router.js              # The Map
+└── app.js                 # The Engine
 ```
 
 ## Proven in Production
@@ -111,11 +100,9 @@ As your business grows, you simply add new modules. The architecture is designed
 
 
 ## Dealing with Complexity
-To avoid **"Fat Managers,"** we distinguish between what the business needs and what the browser needs:
-
-1.  **Data State:** Persistent business data that usually needs to be sent to the database (e.g., the items array). It lives in `data-state.js`.
-2.  **View State:** Temporary visual info (e.g., `isLoading`, `_debounceTimer`). It lives in **Events** because it is disposable and only matters for the current interaction.
-
+We distinguish between the **Truth** and the **Live Tracker**:
+1.  **The Truth (Data Object):** The persistent business data that gets sent to the server. It is updated only when an action is "Confirmed."
+2.  **The Live Tracker (The DOM):** We use the DOM to track transient user changes (typing in an input, checking a box). We do not mirror these changes in a JS state object. We read the "Live Tracker" only when the user is ready to update "The Truth."
 
 
 ## Documentation: The "Signpost" Method
