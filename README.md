@@ -36,11 +36,18 @@ Full-Stack Sandbox (Optional):
 ## The Core Lifecycle
 VanillaCore follows a reactive, human-readable cycle without the "Fat Manager" overhead:
 
-1. **ViewGen (V):** The "Factory." Pure functions that construct UI elements as 100% safe DOM nodes.
-2. **math.js:** Pure business calculations.
-3. **network.js:** API communication and data fetching.
-4. **ViewModel:** The "Translator." A pure function that prepares the Data Object for the View (formatting dates, currency, and conditional labels).
-5. **Render (R):** The "Diplomat." It is "dumb" and state-free. It speaks to the DOM, placing what ViewGen built exactly where it belongs.
+1. **Network:** The "Messenger." The starting point. It fetches the raw "Truth" (Data Object) from the server or prepares it to be sent back.
+2. **Math:** The "Calculator." Processes the raw data. It performs pure business logic—like calculating IVA (tax) or totals—ensuring the Data Object is mathematically complete.
+3. **ViewModel:** The "Translator." A pure mapping layer. It takes the calculated data and translates it into "human-readable" strings (e.g., converting 2026-02-17 to 17/02/2026 or adding currency symbols).
+4. **ViewGen:** The "Factory." Takes the translated strings from the VM and manufactures 100% safe, real DOM nodes. It doesn't know why a label says "Paid"; it just builds the tag.
+5. **Render:** The "Diplomat." The final orchestrator. It is state-free and "dumb." It calls the previous steps in order and places the finished UI nodes into the document, while also managing the page lifecycle (navigation and cleanup).
+
+## Core Framework
+* **vanilla-router.js:** The URL matching engine. It parses the browser pathname and handles dynamic parameters (e.g., :id).
+* **vanilla-render.js:** The central Lifecycle Manager. It handles the onpopstate (navigation), clears the main-wrapper, and provides the RenderView utility to inject new modules.
+* **vanilla-viewgen.js:** Defines the application's global structural DNA (the Sidebar, Header, and Main Content containers).
+* **vanilla-routes.js:** The central mapping file that directs specific URL paths to their corresponding Module Renders.
+* **vanilla-global-state.js:** An optional repository for truly global, read-only data (like Company Info or User Permissions) that persists across all modules.
 
 [Image of a software architecture diagram showing the separation of persistent data state and transient view state within a reactive loop]
 
