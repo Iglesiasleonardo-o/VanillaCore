@@ -54,7 +54,7 @@ function ActionToolbar(events) {
 }
 
 function OptionsDropdown(events) {
-    return div({ className: "dropdown relative no-print inline-block" }).Append(
+    return div({ className: "dropdown relative no-print inline-block ms-2" }).Append(
         // Gatilho: 3 pontos
         button({
             className: "p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-100",

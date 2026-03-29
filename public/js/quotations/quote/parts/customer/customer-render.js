@@ -72,8 +72,8 @@ const handleSearch = async (value, type) => {
     if (results && results.length > 0) {
         resultsContainer.classList.remove("hidden");
 
-        results.forEach(cust => {
-            resultsContainer.appendChild(SearchItem(cust, (selected) => {
+        results.forEach(customer => {
+            resultsContainer.appendChild(SearchItem(customer, (selected) => {
                 setModalInputs(selected);
                 resultsContainer.classList.add("hidden");
             }));

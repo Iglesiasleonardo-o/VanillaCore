@@ -59,7 +59,7 @@ export function QuotationNotFound() {
 }
 
 // 2. A4 DOCUMENT STRUCTURE
-export function A4Sheet(headerView, customerView, itemsView) {
+export function A4Sheet(headerView, customerView, itemsView, paymentTermsWidget) {
     return div({
         id: "a4Page",
         className: "mt-10 mb-20 w-[210mm] min-h-[297mm] bg-white rounded-lg shadow-lg mx-auto p-12 border border-gray-200 border-t"
@@ -72,7 +72,8 @@ export function A4Sheet(headerView, customerView, itemsView) {
                 // Condicoes gerais aqui
                 div({ className: "w-1/2" }).Append(),
                 itemsView.totalsWidget
-            )
+            ),
+            paymentTermsWidget
             // Metodos de pagamento aqui
         )
     );

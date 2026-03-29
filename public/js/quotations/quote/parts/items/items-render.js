@@ -21,7 +21,7 @@ export function setupItemsModule(quotation) {
             toQuoteRowViewModel
         ),
         totalsWidget: TotalsWidget(rowEvents, toTotalsViewModel(quotation.totals)),
-        modalWidget: setupModalWidget(modalEvents)
+        modal: setupModalWidget(modalEvents)
     };
 }
 

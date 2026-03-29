@@ -4,6 +4,7 @@ import { fetchQuotation } from "./logic/network.js";
 import { setupCustomerModule } from "./parts/customer/customer-render.js";
 import { setupA4Header } from "./parts/header/header-render.js";
 import { setupItemsModule } from "./parts/items/items-render.js";
+import { setupPaymentTermsModule } from "./parts/terms/terms-render.js";
 import { setupNavigationToolbar } from "./parts/toolbar/toolbar-render.js";
 import { A4Sheet, LoadingState, QuotationNotFound } from "./quote-viewgen.js";
 
@@ -37,16 +38,19 @@ function renderErrorState(error, quotationNumber) {
 function renderSuccessState(quotation, globalBanks) {
     const customerUi = setupCustomerModule(quotation);
     const itemsUi = setupItemsModule(quotation);
+    const paymentTermsUi = setupPaymentTermsModule(globalBanks, quotation);
 
     RenderView(
         setupNavigationToolbar(quotation.number), // doesnt have anything that changes, or requires ui state
         A4Sheet(
             setupA4Header(quotation),
             customerUi.widget,
-            itemsUi
+            itemsUi,
+            paymentTermsUi.widget
         ),
         customerUi.modal,
-        itemsUi.modalWidget
+        itemsUi.modal,
+        paymentTermsUi.modal
         // Here is where modals should be naturally
     );
 }
