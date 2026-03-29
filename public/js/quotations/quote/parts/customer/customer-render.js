@@ -1,222 +1,152 @@
-import { createCustomerState } from "./logic/customer-data-state.js";
 import { shouldSearch, searchCustomersDatabase } from "./logic/customer-network.js";
 import { CustomerSection, CustomerModal, EmptyState, DetailsContent, SearchItem, CloseDropdownItem } from "./customer-viewgen.js";
 
 export function setupCustomerModule(quotation) {
-    const initialCustomer = quotation.customer || {};
-    const quotationNumber = quotation.number;
+    if (!quotation.customer) quotation.customer = {};
 
-    const state = createCustomerState(initialCustomer);
-    const events = setupEvents(state);
+    const widgetEvents = setupCustomerSectionEvents(quotation);
+    const widget = CustomerSection(quotation, widgetEvents);
 
-    const mainUI = CustomerSection(quotationNumber, events);
-    const modalUI = CustomerModal(events);
+    const modalEvents = setupCustomerModalEvents(quotation);
+    const modal = CustomerModal(quotation.customer, modalEvents);
 
-    observeState(state, mainUI.views, modalUI.views);
-
-    return {
-        widget: mainUI.root,
-        modal: modalUI.root
-    };
+    return { widget, modal };
 }
 
-// --- OBSERVER ---
-function observeState(
-    state,
-    { searchInput, clearBtn, detailsContainer },
-    {
-        modalOverlay, inName, inNuit, inPhone, inAddr, toggleEntity,
-        resNameContainer, resNuitContainer, labelNuitRequired,
-        loadingName, loadingNuit
-    }
-) {
-    // 2. EXPLICIT SYNC TRIGGER: Only updates the A4 card when we tell it to.
-    state.on("syncTrigger", () => {
-        if (state.name) {
-            detailsContainer.replaceChildren(DetailsContent(state));
-            clearBtn.classList.remove('hidden');
-            searchInput.placeholder = `Selecionado: ${state.name}`;
-        } else {
-            detailsContainer.replaceChildren(EmptyState());
-            clearBtn.classList.add('hidden');
-            searchInput.placeholder = "-- Clique para selecionar ou criar cliente --";
-        }
-    });
-
-    // 3. Draft Inputs: Updates the modal inputs silently as state changes
-    state.on("name", name => { if (inName.value !== name) inName.value = name; });
-    state.on("nuit", nuit => { if (inNuit.value !== nuit) inNuit.value = nuit; });
-    state.on("phone", phone => { if (inPhone.value !== phone) inPhone.value = phone; });
-    state.on("address", address => { if (inAddr.value !== address) inAddr.value = address; });
-
-    // 4. Entity Toggle
-    state.on("isEntity", (isEntity) => {
-        toggleEntity.checked = isEntity;
-        labelNuitRequired.classList.toggle('hidden', !isEntity);
-        inNuit.required = isEntity;
-    });
-
-    // 5. Modal Visibility
-    state.on("isModalOpen", (isOpen) => {
-        modalOverlay.classList.toggle("hidden", !isOpen);
-        if (isOpen) {
-            setTimeout(() => {
-                inName.focus();
-                inName.select();
-            }, 50);
-        } else {
-            state.searchResults = [];
-        }
-    });
-
-    // 6. Loading Spinners
-    state.on("loadingType", (type) => {
-        loadingName.classList.toggle("hidden", type !== "name");
-        loadingNuit.classList.toggle("hidden", type !== "nuit");
-    });
-
-    // 7. Search Results
-    state.on("searchResults", (results) => {
-        let activeList, inactiveList;
-
-        if (state.activeSearchField === "name") {
-            activeList = resNameContainer;
-            inactiveList = resNuitContainer;
-        } else {
-            activeList = resNuitContainer;
-            inactiveList = resNameContainer;
-        }
-
-        inactiveList.classList.add("hidden");
-        activeList.textContent = '';
-
-        if (results && results.length > 0) {
-            activeList.classList.remove('hidden');
-
-            results.forEach(customer => {
-                activeList.appendChild(SearchItem(customer, (selectedData) => {
-                    Object.assign(state, {
-                        name: selectedData.name || "",
-                        nuit: selectedData.nuit || "",
-                        phone: selectedData.phone || "",
-                        address: selectedData.address || "",
-                        city: selectedData.city || "",
-                        isEntity: !!selectedData.isEntity,
-                        searchResults: []
-                    });
-                }));
-            });
-
-            activeList.appendChild(CloseDropdownItem(() => {
-                state.searchResults = [];
-            }));
-
-        } else {
-            activeList.classList.add('hidden');
-        }
-    });
-}
-
-// --- EVENTS FACTORY ---
-const setupEvents = (state) => {
-    let originalSnapshot = null;
-
+// --- MAIN SECTION EVENTS ---
+const setupCustomerSectionEvents = (quotation) => {
     return {
         onOpenModal: () => {
-            // TAKE A SNAPSHOT: Save the current state before the user starts typing
-            originalSnapshot = {
-                name: state.name,
-                nuit: state.nuit,
-                phone: state.phone,
-                address: state.address,
-                isEntity: state.isEntity
-            };
-            state.isModalOpen = true;
+            $("customer-selection-modal").classList.remove("hidden");
+            setTimeout(() => $("input-customer-name").focus(), 50);
         },
-
-        // THE SAFE CLOSE: User clicked "X" or the background overlay. Keep data!
-        onCloseModal: () => {
-            state.isModalOpen = false;
-            state.syncTrigger = !state.syncTrigger; // Trigger A4 Sync
-        },
-
-        // CONCLUIR: Exact same behavior as the safe close
-        onSaveModal: (e) => {
-            e.preventDefault();
-            state.isModalOpen = false;
-            state.syncTrigger = !state.syncTrigger; // Trigger A4 Sync
-        },
-
-        // DESTRUCTIVE CANCEL: User explicitly clicked "Cancelar". Rollback!
-        onCancelModal: () => {
-            if (originalSnapshot) {
-                Object.assign(state, originalSnapshot);
-            }
-            state.isModalOpen = false;
-            // No syncTrigger here, so the A4 card remains completely untouched
-        },
-
         onClearCustomer: (e) => {
-            e.stopPropagation();
-            Object.assign(state, {
-                name: "",
-                nuit: "",
-                phone: "",
-                address: "",
-                isEntity: false
-            });
-            state.syncTrigger = !state.syncTrigger;
-        },
+            // Hide the clear button
+            $("customer-clear-btn").classList.add("hidden");
+            
+            // Clear the A4 Card Display
+            $("customer-search-input").placeholder = "-- Clique para selecionar ou criar cliente --";
+            $("customer-details-container").replaceChildren(EmptyState());
 
-        onNameInput: async (e) => {
-            const value = e.target.value;
-            state.name = value;
-            state.activeSearchField = "name";
+            // Wipe the DOM draft state
+            $("input-customer-name").value = "";
+            $("input-customer-nuit").value = "";
+            $("input-customer-phone").value = "";
+            $("input-customer-address").value = "";
 
-            if (!shouldSearch(value)) {
-                state.searchResults = [];
-                state.loadingType = null;
-                return;
-            }
+            $("toggleIsEntity").checked = false;
+            $("input-customer-nuit").required = false;
+            $("label-nuit-required").classList.add("hidden");
 
-            state.loadingType = "name";
-            const results = await searchCustomersDatabase(value, "name");
+            // Wipe the actual data object
+            quotation.customer = {};
+        }
+    }
+}
 
-            if (state.activeSearchField === "name") {
-                state.searchResults = results;
-                state.loadingType = null;
-            }
-        },
 
-        onNuitInput: async (e) => {
-            const value = e.target.value;
-            state.nuit = value;
-            state.activeSearchField = "nuit";
+const handleSearch = async (value, type) => {
+    const resultsContainer = $(`customer-results-${type}`);
+    const loadingSpinner = $(type === "name" ? "customer-loading-name" : "loading-nuit");
 
-            if (!shouldSearch(value)) {
-                state.searchResults = [];
-                state.loadingType = null;
-                return;
-            }
+    if (!shouldSearch(value)) {
+        resultsContainer.classList.add("hidden");
+        return;
+    }
 
-            state.loadingType = "nuit";
-            const results = await searchCustomersDatabase(value, "nuit");
+    loadingSpinner.classList.remove("hidden");
+    const results = await searchCustomersDatabase(value, type);
+    loadingSpinner.classList.add("hidden");
 
-            if (state.activeSearchField === "nuit") {
-                state.searchResults = results;
-                state.loadingType = null;
-            }
-        },
+    resultsContainer.textContent = "";
 
-        onPhoneInput: (e) => state.phone = e.target.value,
-        onAddrInput: (e) => state.address = e.target.value,
+    if (results && results.length > 0) {
+        resultsContainer.classList.remove("hidden");
+
+        results.forEach(cust => {
+            resultsContainer.appendChild(SearchItem(cust, (selected) => {
+                $("input-customer-name").value = selected.name || "";
+                $("input-customer-nuit").value = selected.nuit || "";
+                $("input-customer-phone").value = selected.phone || "";
+                $("input-customer-address").value = selected.address || "";
+
+                const isEntity = !!selected.isEntity;
+                $("toggleIsEntity").checked = isEntity;
+                $("input-customer-nuit").required = isEntity;
+                $("label-nuit-required").classList.toggle("hidden", !isEntity);
+
+                resultsContainer.classList.add("hidden");
+            }));
+        });
+
+        resultsContainer.appendChild(CloseDropdownItem(() => {
+            resultsContainer.classList.add("hidden");
+        }));
+    } else {
+        resultsContainer.classList.add("hidden");
+    }
+};
+
+// --- MODAL EVENTS ---
+const setupCustomerModalEvents = (quotation) => {
+    return {
+        onNameInput: (e) => handleSearch(e.target.value, "name"),
+        onNuitInput: (e) => handleSearch(e.target.value, "nuit"),
 
         onToggleEntity: (e) => {
-            if (e.target.tagName !== "INPUT") {
-                state.isEntity = !state.isEntity;
-            } else {
-                state.isEntity = e.target.checked;
-            }
+            const checkbox = $("toggleIsEntity");
+            checkbox.checked = !checkbox.checked;
+            const isChecked = checkbox.checked;
+            $("input-customer-nuit").required = isChecked;
+            $("label-nuit-required").classList.toggle("hidden", !isChecked);
+        },
+
+        onPhoneInput: () => { },
+        onAddrInput: () => { },
+
+        onCancelModal: () => {
+            // Always read from quotation.customer to avoid the stale memory reference bug
+            const c = quotation.customer;
+
+            // Revert DOM to last saved state
+            $("input-customer-name").value = c.name || "";
+            $("input-customer-nuit").value = c.nuit || "";
+            $("input-customer-phone").value = c.phone || "";
+            $("input-customer-address").value = c.address || "";
+
+            const isEntity = !!c.isEntity;
+            $("toggleIsEntity").checked = isEntity;
+            $("input-customer-nuit").required = isEntity;
+            $("label-nuit-required").classList.toggle("hidden", !isEntity);
+
+            // Hide UI
+            $("customer-results-name").classList.add("hidden");
+            $("customer-results-nuit").classList.add("hidden");
+            $("customer-selection-modal").classList.add("hidden");
+        },
+
+        onSaveModal: (e) => {
+            if (e) e.preventDefault();
+
+            // 1. Commit draft DOM values to the true quotation object
+            const nameVal = $("input-customer-name").value.trim();
+            quotation.customer = {
+                name: nameVal,
+                nuit: $("input-customer-nuit").value.trim(),
+                phone: $("input-customer-phone").value.trim(),
+                address: $("input-customer-address").value.trim(),
+                isEntity: $("toggleIsEntity").checked
+            };
+
+            // 2. Update the A4 Card UI
+            $("customer-details-container").replaceChildren(DetailsContent(quotation.customer));
+            $("customer-clear-btn").classList.remove('hidden');
+            $("customer-search-input").placeholder = `Selecionado: ${nameVal}`;
+
+            // 3. Hide UI
+            $("customer-results-name").classList.add("hidden");
+            $("customer-results-nuit").classList.add("hidden");
+            $("customer-selection-modal").classList.add("hidden");
         }
-    };
-};
+    }
+}

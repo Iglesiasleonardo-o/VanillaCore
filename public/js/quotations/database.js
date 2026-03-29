@@ -441,7 +441,7 @@ export const quotations = [
                 }
             ]
         },
-        customer: { id: 1, name: "Mozal S.A.", address: "Beluluane Industrial Park", city: "Maputo", nuit: "400012345" },
+        customer: { id: 1, name: "Mozal S.A.", address: "Beluluane Industrial Park", city: "Maputo", nuit: "400012345", isEntity: true},
         items: [
             { ref: "CUDY-GS105D", name: "Cudy 5 Port Gigabit Switch", quantity: 5, unitPrice: 15.90, discount: 0, taxRate: 0.16, totalLine: 79.50 }
         ],
