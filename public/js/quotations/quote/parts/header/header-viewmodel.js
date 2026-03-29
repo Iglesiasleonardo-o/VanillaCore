@@ -1,4 +1,4 @@
-import { calculateExpiryDate } from "./header-math.js";
+import { calculateExpiryDate, formatToDisplayDate } from "./header-math.js";
 
 /**
  * Transforms raw quotation data into a display-ready ViewModel
@@ -7,9 +7,12 @@ export function createHeaderViewModel(quotation) {
     const { metadata } = quotation;
     const expiryDays = metadata.expiryDays || 0;
 
+    const issueDate = quotation.issueDate || new Date().toISOString().split('T')[0];
+
     return {
-        issueDate: quotation.issueDate,
-        expiryLabel: "Válida até: " + calculateExpiryDate(quotation.issueDate, expiryDays),
+        issueDate: formatToDisplayDate(issueDate),
+        expiryDay: calculateExpiryDate(issueDate, expiryDays),
+        expiryLabel: calculateExpiryDate(quotation.issueDate, expiryDays),
         seller: metadata.seller || "Anónimo",
         standardDays: ["7", "15", "30", "120"],
         expiryDays: expiryDays

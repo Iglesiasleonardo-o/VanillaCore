@@ -3,40 +3,35 @@ import { div, h2, header, img, input, option, p, RichElement, select, span } fro
 export function HeaderView(quotation, viewModel, events) {
     const { issuer } = quotation;
 
-    // 2. The Unbroken Tree (Captured Inline)
     return header({ className: "flex justify-between items-start border-gray-200" }).Append(
         CompanyInfo(issuer),
         div({ className: "flex flex-col items-end text-right" }).Append(
             img({
-                src: "../../../img/inovitek-logo.svg", className: "w-56 object-contain mb-4",
+                src: "/public/img/inovitek-logo.svg", className: "w-56 object-contain mb-4",
                 onerror: e => { e.target.src = 'https://placehold.co/224x60/CCCCCC/333333?text=INOVITEK+LOGO'; }
             }),
             div({ className: "mt-0 space-y-1 text-sm" }).Append(
-                // Data Row
                 MetadataRow("Data:",
-                    span({ id: "printDate", className: "print-only hidden" }),
+                    span({ id: "printDate", className: "print-only hidden", textContent: viewModel.issueDate }),
                     input({
                         id: "dateInput", type: "date",
                         value: quotation.issueDate,
                         onchange: events.onDateChange,
-                        className: "no-print text-sm border-gray-300 rounded-md py-0 px-1 text-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className: "no-print w-full text-sm border border-gray-300 rounded-md shadow-sm py-0.5 px-2 text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
                     })
                 ),
-                // Validade Row
                 MetadataRow("Válida até:",
-                    span({ id: "printExpiry", className: "print-only hidden" }),
+                    span({ id: "printExpiry", className: "print-only hidden", textContent: viewModel.expiryDate }),
                     ValidityWrapper(viewModel, events)
                 ),
-                // Vendedor Row
                 MetadataRow("Vendedor:",
-                    span({ id: "sellerSpan", className: "text-gray-600", innerText: viewModel.seller })
+                    span({ id: "sellerSpan", className: "text-gray-600 block py-0.5", innerText: viewModel.seller })
                 )
             )
         )
     );
 }
 
-// --- STATIC HELPERS ---
 function ValidityWrapper(viewModel, events) {
     const { expiryDays, standardDays } = viewModel;
     
@@ -45,7 +40,7 @@ function ValidityWrapper(viewModel, events) {
     const validitySelect = select({
         id: "validitySelect",
         onchange: (e) => events.onValidityChange(e),
-        className: "w-full text-sm border-gray-300 rounded-md py-0.5 px-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className: "w-full text-sm border border-gray-300 rounded-md shadow-sm py-0.5 px-2 text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white cursor-pointer"
     });
 
     standardDays.forEach(day => {
@@ -66,20 +61,19 @@ function ValidityWrapper(viewModel, events) {
         selected: isManual
     }));
 
-    return div({ className: "no-print -mt-1.5" }).Append(
+    return div({ className: "no-print flex flex-col w-full" }).Append(
         validitySelect,
         input({
             id: "otherInput",
             type: "number",
             placeholder: "Ex: 45",
             oninput: events.onOtherInput,
-            className: `${isManual ? "" : "hidden"} mt-1 w-full text-sm border-gray-300 rounded-md py-0.5 px-2 focus:outline-none focus:ring-1 focus:ring-blue-500`,
+            className: `${isManual ? "" : "hidden"} mt-1.5 w-full text-sm border border-gray-300 rounded-md shadow-sm py-0.5 px-2 text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white`,
             value: isManual ? expiryDays : ""
         }),
-        span({ id: "uiExpiry", className: "mt-0.5 text-xs text-gray-500 block", innerText: viewModel.expiryLabel })
+        span({ id: "uiExpiry", className: "mt-1 text-xs text-gray-500 block text-right", innerText: viewModel.expiryLabel })
     );
 }
-
 
 function CompanyInfo(issuer) {
     return div({ className: "text-xs text-gray-700" }).Append(
@@ -93,8 +87,8 @@ function CompanyInfo(issuer) {
 }
 
 function MetadataRow(label, ...children) {
-    return div({ className: "grid grid-cols-2 gap-2" }).Append(
-        RichElement("strong", { className: "text-gray-700", textContent: label }),
-        div({ className: "text-gray-600" }).Append(...children)
+    return div({ className: "grid grid-cols-[80px_1fr] gap-1 items-center" }).Append(
+        RichElement("strong", { className: "text-gray-700 text-right whitespace-nowrap", textContent: label }),
+        div({ className: "text-gray-600 w-full" }).Append(...children)
     );
 }

@@ -67,7 +67,7 @@ export function A4Sheet(headerView, customerView, itemsView) {
         headerView,
         customerView,
         itemsView.tableWidget,
-        footer({ className: "pt-4 border-t border-gray-200" }).Append(
+        footer({ className: "pt-4 border-gray-200" }).Append(
             div({ className: "flex justify-between items-start gap-8" }).Append(
                 // Condicoes gerais aqui
                 div({ className: "w-1/2" }).Append(),

@@ -1,15 +1,19 @@
 import { searchCustomersDatabase } from "./customer-network.js";
 import { CustomerSection, CustomerModal, EmptyState, DetailsContent, SearchItem, CloseDropdownItem } from "./customer-viewgen.js";
 import { shouldSearch } from "./customer-math.js";
+import { createCustomerViewModel } from "./customer-viewmodel.js";
 
 export function setupCustomerModule(quotation) {
-    if (!quotation.customer) quotation.customer = {};
+    quotation.customer = quotation.customer || { name: "" };
 
+    const viewModel = createCustomerViewModel(quotation);
+
+    // Pass the viewModel into the viewgens
     const widgetEvents = setupCustomerSectionEvents(quotation);
-    const widget = CustomerSection(quotation, widgetEvents);
+    const widget = CustomerSection(viewModel, widgetEvents);
 
     const modalEvents = setupCustomerModalEvents(quotation);
-    const modal = CustomerModal(quotation.customer, modalEvents);
+    const modal = CustomerModal(viewModel, modalEvents);
 
     return { widget, modal };
 }
@@ -70,7 +74,6 @@ const handleSearch = async (value, type) => {
 
         results.forEach(cust => {
             resultsContainer.appendChild(SearchItem(cust, (selected) => {
-                // Use the helper instead of writing 7 lines of code!
                 setModalInputs(selected);
                 resultsContainer.classList.add("hidden");
             }));
@@ -84,12 +87,10 @@ const handleSearch = async (value, type) => {
     }
 };
 
-
 // ==========================================
 // EVENTS FACTORIES
 // ==========================================
 
-// --- MAIN SECTION EVENTS ---
 const setupCustomerSectionEvents = (quotation) => {
     return {
         onOpenModal: () => {
@@ -97,23 +98,21 @@ const setupCustomerSectionEvents = (quotation) => {
             setTimeout(() => $("input-customer-name").focus(), 50);
         },
         onClearCustomer: () => {
-            // Hide the clear button
             $("customer-clear-btn").classList.add("hidden");
 
-            // Clear the A4 Card Display
+            // 1. Wipe the data object
+            quotation.customer = {};
+
+            // 2. Directly update the UI with hardcoded defaults
             $("customer-search-input").placeholder = "-- Clique para selecionar ou criar cliente --";
             $("customer-details-container").replaceChildren(EmptyState());
 
-            // Wipe the DOM draft state using our helper
+            // 3. Wipe draft inputs
             setModalInputs({});
-
-            // Wipe the actual data object
-            quotation.customer = {};
         }
     }
 }
 
-// --- MODAL EVENTS ---
 const setupCustomerModalEvents = (quotation) => {
     return {
         onNameInput: (e) => handleSearch(e.target.value, "name"),
@@ -131,7 +130,6 @@ const setupCustomerModalEvents = (quotation) => {
         onAddrInput: () => { },
 
         onCancelModal: () => {
-            // Revert DOM to last saved state
             setModalInputs(quotation.customer);
             closeModalUI();
         },
@@ -139,15 +137,14 @@ const setupCustomerModalEvents = (quotation) => {
         onSaveModal: (e) => {
             e.preventDefault();
 
-            // 1. Commit draft DOM values using the helper
+            // 1. Save DOM inputs to raw source of truth
             quotation.customer = readModalInputs();
 
-            // 2. Update the A4 Card UI
+            // 2. Sync the UI directly using the raw data
             $("customer-details-container").replaceChildren(DetailsContent(quotation.customer));
             $("customer-clear-btn").classList.remove('hidden');
             $("customer-search-input").placeholder = `Selecionado: ${quotation.customer.name}`;
 
-            // 3. Hide UI
             closeModalUI();
         }
     }
