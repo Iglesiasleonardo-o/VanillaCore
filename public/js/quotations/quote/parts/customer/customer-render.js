@@ -1,5 +1,6 @@
-import { shouldSearch, searchCustomersDatabase } from "./logic/customer-network.js";
+import { searchCustomersDatabase } from "./customer-network.js";
 import { CustomerSection, CustomerModal, EmptyState, DetailsContent, SearchItem, CloseDropdownItem } from "./customer-viewgen.js";
+import { shouldSearch } from "./customer-math.js";
 
 export function setupCustomerModule(quotation) {
     if (!quotation.customer) quotation.customer = {};
@@ -13,37 +14,41 @@ export function setupCustomerModule(quotation) {
     return { widget, modal };
 }
 
-// --- MAIN SECTION EVENTS ---
-const setupCustomerSectionEvents = (quotation) => {
+// ==========================================
+// DOM HELPERS
+// ==========================================
+
+const setModalInputs = (data) => {
+    $("input-customer-name").value = data.name || "";
+    $("input-customer-nuit").value = data.nuit || "";
+    $("input-customer-phone").value = data.phone || "";
+    $("input-customer-address").value = data.address || "";
+
+    const isEntity = !!data.isEntity;
+    $("toggleIsEntity").checked = isEntity;
+    $("input-customer-nuit").required = isEntity;
+    $("label-nuit-required").classList.toggle("hidden", !isEntity);
+};
+
+const readModalInputs = () => {
     return {
-        onOpenModal: () => {
-            $("customer-selection-modal").classList.remove("hidden");
-            setTimeout(() => $("input-customer-name").focus(), 50);
-        },
-        onClearCustomer: (e) => {
-            // Hide the clear button
-            $("customer-clear-btn").classList.add("hidden");
-            
-            // Clear the A4 Card Display
-            $("customer-search-input").placeholder = "-- Clique para selecionar ou criar cliente --";
-            $("customer-details-container").replaceChildren(EmptyState());
+        name: $("input-customer-name").value.trim(),
+        nuit: $("input-customer-nuit").value.trim(),
+        phone: $("input-customer-phone").value.trim(),
+        address: $("input-customer-address").value.trim(),
+        isEntity: $("toggleIsEntity").checked
+    };
+};
 
-            // Wipe the DOM draft state
-            $("input-customer-name").value = "";
-            $("input-customer-nuit").value = "";
-            $("input-customer-phone").value = "";
-            $("input-customer-address").value = "";
+const closeModalUI = () => {
+    $("customer-results-name").classList.add("hidden");
+    $("customer-results-nuit").classList.add("hidden");
+    $("customer-selection-modal").classList.add("hidden");
+};
 
-            $("toggleIsEntity").checked = false;
-            $("input-customer-nuit").required = false;
-            $("label-nuit-required").classList.add("hidden");
-
-            // Wipe the actual data object
-            quotation.customer = {};
-        }
-    }
-}
-
+// ==========================================
+// SEARCH LOGIC
+// ==========================================
 
 const handleSearch = async (value, type) => {
     const resultsContainer = $(`customer-results-${type}`);
@@ -65,16 +70,8 @@ const handleSearch = async (value, type) => {
 
         results.forEach(cust => {
             resultsContainer.appendChild(SearchItem(cust, (selected) => {
-                $("input-customer-name").value = selected.name || "";
-                $("input-customer-nuit").value = selected.nuit || "";
-                $("input-customer-phone").value = selected.phone || "";
-                $("input-customer-address").value = selected.address || "";
-
-                const isEntity = !!selected.isEntity;
-                $("toggleIsEntity").checked = isEntity;
-                $("input-customer-nuit").required = isEntity;
-                $("label-nuit-required").classList.toggle("hidden", !isEntity);
-
+                // Use the helper instead of writing 7 lines of code!
+                setModalInputs(selected);
                 resultsContainer.classList.add("hidden");
             }));
         });
@@ -87,66 +84,71 @@ const handleSearch = async (value, type) => {
     }
 };
 
+
+// ==========================================
+// EVENTS FACTORIES
+// ==========================================
+
+// --- MAIN SECTION EVENTS ---
+const setupCustomerSectionEvents = (quotation) => {
+    return {
+        onOpenModal: () => {
+            $("customer-selection-modal").classList.remove("hidden");
+            setTimeout(() => $("input-customer-name").focus(), 50);
+        },
+        onClearCustomer: () => {
+            // Hide the clear button
+            $("customer-clear-btn").classList.add("hidden");
+
+            // Clear the A4 Card Display
+            $("customer-search-input").placeholder = "-- Clique para selecionar ou criar cliente --";
+            $("customer-details-container").replaceChildren(EmptyState());
+
+            // Wipe the DOM draft state using our helper
+            setModalInputs({});
+
+            // Wipe the actual data object
+            quotation.customer = {};
+        }
+    }
+}
+
 // --- MODAL EVENTS ---
 const setupCustomerModalEvents = (quotation) => {
     return {
         onNameInput: (e) => handleSearch(e.target.value, "name"),
         onNuitInput: (e) => handleSearch(e.target.value, "nuit"),
 
-        onToggleEntity: (e) => {
+        onToggleEntity: () => {
             const checkbox = $("toggleIsEntity");
             checkbox.checked = !checkbox.checked;
-            const isChecked = checkbox.checked;
-            $("input-customer-nuit").required = isChecked;
-            $("label-nuit-required").classList.toggle("hidden", !isChecked);
+
+            $("input-customer-nuit").required = checkbox.checked;
+            $("label-nuit-required").classList.toggle("hidden", !checkbox.checked);
         },
 
         onPhoneInput: () => { },
         onAddrInput: () => { },
 
         onCancelModal: () => {
-            // Always read from quotation.customer to avoid the stale memory reference bug
-            const c = quotation.customer;
-
             // Revert DOM to last saved state
-            $("input-customer-name").value = c.name || "";
-            $("input-customer-nuit").value = c.nuit || "";
-            $("input-customer-phone").value = c.phone || "";
-            $("input-customer-address").value = c.address || "";
-
-            const isEntity = !!c.isEntity;
-            $("toggleIsEntity").checked = isEntity;
-            $("input-customer-nuit").required = isEntity;
-            $("label-nuit-required").classList.toggle("hidden", !isEntity);
-
-            // Hide UI
-            $("customer-results-name").classList.add("hidden");
-            $("customer-results-nuit").classList.add("hidden");
-            $("customer-selection-modal").classList.add("hidden");
+            setModalInputs(quotation.customer);
+            closeModalUI();
         },
 
         onSaveModal: (e) => {
-            if (e) e.preventDefault();
+            e.preventDefault();
 
-            // 1. Commit draft DOM values to the true quotation object
-            const nameVal = $("input-customer-name").value.trim();
-            quotation.customer = {
-                name: nameVal,
-                nuit: $("input-customer-nuit").value.trim(),
-                phone: $("input-customer-phone").value.trim(),
-                address: $("input-customer-address").value.trim(),
-                isEntity: $("toggleIsEntity").checked
-            };
+            // 1. Commit draft DOM values using the helper
+            quotation.customer = readModalInputs();
 
             // 2. Update the A4 Card UI
             $("customer-details-container").replaceChildren(DetailsContent(quotation.customer));
             $("customer-clear-btn").classList.remove('hidden');
-            $("customer-search-input").placeholder = `Selecionado: ${nameVal}`;
+            $("customer-search-input").placeholder = `Selecionado: ${quotation.customer.name}`;
 
             // 3. Hide UI
-            $("customer-results-name").classList.add("hidden");
-            $("customer-results-nuit").classList.add("hidden");
-            $("customer-selection-modal").classList.add("hidden");
+            closeModalUI();
         }
     }
 }

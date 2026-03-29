@@ -1,4 +1,4 @@
-import { calculateExpiryDate } from "./logic/header-math.js";
+import { calculateExpiryDate } from "./header-math.js";
 
 /**
  * Transforms raw quotation data into a display-ready ViewModel

@@ -1,5 +1,5 @@
 import { NavigationHeader } from './toolbar-viewgen.js';
-import { executeSave } from './logic/toolbar-network.js';
+import { executeSave } from './toolbar-network.js';
 
 export function setupNavigationToolbar(quotationNumber) {
     const events = setupEvents();

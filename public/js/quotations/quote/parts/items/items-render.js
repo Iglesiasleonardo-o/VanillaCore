@@ -1,7 +1,7 @@
 import { globalState } from "../../../../vanilla-core/vanilla-global-state.js";
 import { EmptyTableState, ItemsTableWidget, QuoteRow, TotalsWidget } from "./items-viewgen.js";
 import { formatByCurrency, formatByCurrencySymbol, toQuoteRowViewModel, toTotalsViewModel } from "./items-viewmodel.js";
-import { applyTotalDelta, calculateLineTotals, sanitizeDiscount, sanitizeQuantity } from "./logic/items-math.js";
+import { applyTotalDelta, calculateLineTotals, sanitizeDiscount, sanitizeQuantity } from "./items-math.js";
 import { setupModalEvents, setupModalWidget } from "./modal-render.js";
 
 export function setupItemsModule(quotation) {

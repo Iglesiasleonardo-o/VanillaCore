@@ -1,6 +1,6 @@
 import { HeaderView } from "./header-viewgen.js";
 import { createHeaderViewModel } from "./header-viewmodel.js";
-import { calculateExpiryDate, formatToDisplayDate } from "./logic/header-math.js";
+import { calculateExpiryDate, formatToDisplayDate } from "./header-math.js";
 
 export function setupA4Header(quotation) {
     const viewModel = createHeaderViewModel(quotation);

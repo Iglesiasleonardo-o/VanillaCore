@@ -1,5 +1,5 @@
 // logic/items-network.js
-import { fetchProducts } from '../../../../database.js'; // <-- Adjust this path to your actual database file
+import { fetchProducts } from '../../../database.js'; // <-- Adjust this path to your actual database file
 
 const delay = (ms) => new Promise(res => setTimeout(res, ms));
 

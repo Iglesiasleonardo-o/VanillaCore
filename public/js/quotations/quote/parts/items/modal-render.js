@@ -1,6 +1,6 @@
 import { formatByCurrencySymbol, toModalViewModel, toQuoteRowViewModel } from "./items-viewmodel.js";
-import { calculateLineTotals, sanitizeDiscount, sanitizeQuantity } from "./logic/items-math.js";
-import { loadProductsData } from "./logic/items-network.js";
+import { calculateLineTotals, sanitizeDiscount, sanitizeQuantity } from "./items-math.js";
+import { loadProductsData } from "./items-network.js";
 import { BottomLoader, EmptySearchState, ItemsModalWidget, ModalItem } from "./modal-viewgen.js";
 
 // Modal-specific UI State
