@@ -37,7 +37,7 @@ import { div, h1, p, button } from './viewgencore.js';
 /**
  * @param {Function} onButtonClick - Event handler passed from the controller
  */
-export const createDashboardView = (onButtonClick) => {
+export const DashboardView = (onButtonClick) => {
     return div({ className: 'container' })
         .Append(
             h1({ textContent: 'Performance Metrics' }),
@@ -56,7 +56,7 @@ For large-scale applications, use specialized generators for repeating elements 
 ```javascript
 import { tr, td, button } from './viewgencore.js';
 
-export const createUserRowView = (user, onDelete) => {
+export const UserRowView = (user, onDelete) => {
     return tr({ className: 'user-row' })
         .Append(
             td({ textContent: user.id }),
