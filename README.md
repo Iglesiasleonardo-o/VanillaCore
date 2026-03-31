@@ -12,6 +12,7 @@ Full-Stack Sandbox (Optional):
 1. `git clone https://github.com/Iglesiasleonardo-o/VanillaCore.git`
 2. `npm install` (Only for the Node.js server example).
 3. `npm start`
+4. The only working path is only `http://localhost/quotations/1-26`
 
 > **Note:** The core architecture itself requires zero dependencies; the sandbox is provided for full-stack demonstration.
 
