@@ -13,14 +13,14 @@ export function ItemsModalWidget(events) {
         }).Append(
             header({ className: "p-4 border-b border-gray-200 flex items-center gap-4 bg-white sticky top-0 z-10" }).Append(
                 input({
-                    id: "modal-search", type: "text", placeholder: "Pesquisar produtos por nome ou referência...", className: "flex-1 border border-gray-300 rounded-lg py-2 px-4 focus:ring-blue-500 focus:border-blue-500",
+                    id: "modal-search", type: "text", placeholder: "Pesquisar produtos por nome ou referência...", className: "px-4 py-2.5 w-full border border-gray-300 bg-gray-50 rounded-xl shadow-inner focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-gray-700",
                     oninput: events.onSearchInput,
                     onfocus: e => {
                         setTimeout(() => { e.target.select(); }, 0);
                     }
                 }),
                 button({
-                    className: "text-gray-400 hover:text-gray-600",
+                    className: "text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-colors",
                     onclick: events.onClose
                 }).Append(
                     Icon("M6 18L18 6M6 6l12 12", "w-6 h-6")

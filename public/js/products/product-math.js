@@ -7,7 +7,7 @@ export function getCartesianProduct(arrays) {
 }
 
 export function formatCurrency(value) {
-    return `MZN ${Number(value).toFixed(2).replace('.', ',')}`;
+    return `${Number(value).toFixed(2).replace('.', ',')} Mzn`;
 }
 
 export function shouldSearch(value) {

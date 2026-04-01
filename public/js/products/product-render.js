@@ -1,186 +1,317 @@
 import { RenderView } from "../vanilla-core/vanilla-render.js";
-import { fetchInitialProducts, searchProductsDatabase, saveProductDatabase } from "./product-network.js";
-import { shouldSearch } from "./product-math.js";
-import { createProductListViewModel } from "./product-viewmodel.js";
-import { 
-    ProductsPageLayout, 
-    LoadingState, 
-    ProductErrorState,
-    ProductMainWidget,
-    ProductModal,
-    ConfirmExitModal,
-    ProductCard, 
-    EmptyState 
-} from "./product-viewgen.js";
+import { loadProductsData, saveProductDatabase } from "./product-network.js";
+import { BottomLoader, ConfirmExitModal, EmptyState, LoadingState, ProductCard, ProductErrorState, ProductMainWidget, ProductModal, ProductsPageLayout } from "./product-viewgen.js";
+import { createProductCardViewModel } from "./product-viewmodel.js";
 
 // ==========================================
-// ROUTE LOADER EVENT
+// ESTADO DE MÓDULO (Type Module)
+// ==========================================
+let gridObserver = null;
+let currentCursor = null;
+let currentSearchQuery = "";
+let searchTimeout = null;
+
+// Memória local sequencial
+let localProducts = [];
+
+const ITEMS_LENGTH = 50;
+
+// ==========================================
+// INICIALIZAÇÃO E SETUP PRINCIPAL
 // ==========================================
 export async function loadProductsByURLEvent() {
     try {
-        const loadingDiv = LoadingState();
-        RenderView(loadingDiv);
+        RenderView(LoadingState());
 
-        // Busca os produtos iniciais para popular a grelha
-        const response = await fetchInitialProducts();
+        const productUi = setupProductModule();
 
-        loadingDiv.classList.add("hidden");
+        RenderView(
+            ProductsPageLayout(productUi.widget),
+            productUi.modal,
+            productUi.confirmModal
+        );
 
-        // Passamos os dados da API (response.data ou response direto dependendo do fetch)
-        renderSuccessState(response.data || response);
+        await productUi.executeSearch("");
     } catch (error) {
-        renderErrorState(error);
-    }
-}
-
-function renderErrorState(error) {
-    if (error.status === 404 || error.status === 500) {
         RenderView(ProductErrorState(error));
-    } else {
-        console.error(error);
-        alert("Erro genérico ao carregar a página de produtos.");
     }
 }
 
-function renderSuccessState(initialProducts) {
-    // Inicializa o módulo de produtos e recebe os componentes ViewGen
-    const productUi = setupProductModule(initialProducts);
+export function setupProductModule() {
+    const modalEvents = setupModalEvents();
+    const gridEvents = setupGridEvents(modalEvents);
 
-    RenderView(
-        // Layout principal que engloba a Sidebar e o Main Content
-        ProductsPageLayout( 
-            productUi.widget      // O Header de pesquisa e a estrutura da Grelha
-        ),
-        // Aqui ficam os modais (montados na raiz do body para o z-index)
-        productUi.modal,
-        productUi.confirmModal
-    );
+    const allEvents = { ...gridEvents, ...modalEvents };
 
-    // Renderiza a grelha inicial agora que o contentor #productGrid já existe no DOM
-    productUi.renderGrid();
+    return {
+        widget: ProductMainWidget(allEvents),
+        modal: ProductModal(allEvents),
+        confirmModal: ConfirmExitModal(allEvents),
+        executeSearch: gridEvents.executeSearch
+    };
 }
 
 // ==========================================
-// MODULE SETUP
+// HELPERS DO DOM DIRETOS (Usando $)
 // ==========================================
-export function setupProductModule(initialProducts) {
-    let state = {
-        isFormDirty: false,
-        currentProductId: null,
-        currentProductImageUrl: null
-    };
+const resetModalUI = () => {
+    $("productForm").reset();
+    $("productForm").removeAttribute("data-product-id");
+    $("productForm").removeAttribute("data-dirty");
+    
+    if (modalEventsRef.onSwitchTab) modalEventsRef.onSwitchTab("general");
+};
 
-    // Atualiza o DOM da grelha de produtos
-    const renderGrid = async (query = "") => {
-        const rawProducts = query ? await searchProductsDatabase(query) : initialProducts;
-        const viewModels = createProductListViewModel(rawProducts);
+const setModalInputs = (product) => {
+    const form = $("productForm");
+    
+    form.setAttribute("data-product-id", product ? product.id : "");
+    form.elements["productName"].value = product ? product.name : "";
+    form.elements["salesPrice"].value = product ? (product.price || product.unitPrice || "") : "";
+    form.elements["costPrice"].value = product ? (product.cost || "") : "";
+    form.elements["reference"].value = product ? (product.ref || "") : "";
+    
+    const prodType = product ? (product.productType || product.type || 'mercadoria') : 'mercadoria';
+    
+    if (prodType === 'servico') $("type-servico").checked = true;
+    else if (prodType === 'combo') $("type-combo").checked = true;
+    else $("type-mercadoria").checked = true;
 
-        const container = document.getElementById("productGrid");
-        if (!container) return;
+    const isTracking = product ? (product.trackInventory !== false) : true; 
+    const onHandValue = product ? (product.onHand || "") : "";
 
-        container.innerHTML = "";
+    $("quantityOnHand").value = onHandValue;
+
+    if (prodType === 'servico') {
+        $("trackInventory").checked = false;
+        $("trackInventory").disabled = true;
+        $("quantity-container").classList.add('hidden');
+        $("inventory-tracking-container").classList.add('opacity-50');
+    } else {
+        $("trackInventory").disabled = false;
+        $("inventory-tracking-container").classList.remove('opacity-50');
         
-        if (viewModels.length === 0) {
-            container.appendChild(EmptyState());
+        $("trackInventory").checked = isTracking;
+        
+        if (isTracking) {
+            $("quantity-container").classList.remove('hidden');
         } else {
-            viewModels.forEach(vm => {
-                container.appendChild(ProductCard(vm, events));
-            });
+            $("quantity-container").classList.add('hidden');
         }
+    }
+};
+
+// ==========================================
+// MÓDULO: GRID & PESQUISA
+// ==========================================
+function setupGridEvents(modalEvents) {
+
+    const renderGridItems = (results, container) => {
+        results.forEach(item => {
+            const viewData = createProductCardViewModel(item);
+            container.appendChild(ProductCard(viewData, { onEditProduct: modalEvents.onEditProduct }));
+        });
+
+        if (window.lucide) lucide.createIcons();
+    };
+
+    const setupInfiniteScrollObserver = (targetElement, container) => {
+        if (gridObserver) gridObserver.disconnect();
+
+        gridObserver = new IntersectionObserver(async (entries) => {
+            if (!entries[0].isIntersecting) return;
+            gridObserver.disconnect();
+
+            const loaderNode = BottomLoader();
+            container.appendChild(loaderNode);
+
+            const newResults = await loadProductsData(currentSearchQuery, currentCursor);
+            loaderNode.remove();
+
+            if (newResults.length > 0) {
+                // Adiciona os novos resultados à array local na mesma ordem
+                localProducts.push(...newResults);
+                
+                currentCursor = newResults[newResults.length - 1].name;
+                renderGridItems(newResults, container);
+            }
+
+            if (newResults.length >= ITEMS_LENGTH) {
+                gridObserver.observe(container.lastElementChild);
+            }
+        }, { rootMargin: "200px", threshold: 0 });
+
+        gridObserver.observe(targetElement);
+    };
+
+    const executeSearch = async (query) => {
+        currentSearchQuery = query;
+        currentCursor = null;
+        localProducts = []; // Limpa a memória local na nova pesquisa
+
+        if (gridObserver) gridObserver.disconnect();
+
+        $("productGrid").innerHTML = ""; 
+        $("gridLoadingIndicator").classList.remove("hidden");
+
+        const results = await loadProductsData(currentSearchQuery, currentCursor);
+
+        $("gridLoadingIndicator").classList.add("hidden");
+
+        if (results.length === 0) {
+            $("productGrid").appendChild(EmptyState());
+            return;
+        }
+
+        // Preenche a memória local com a primeira página
+        localProducts = [...results];
         
-        // Reinicializa os ícones após manipulação do DOM
-        if (window.lucide) {
-            lucide.createIcons();
+        currentCursor = results[results.length - 1].name;
+        renderGridItems(results, $("productGrid"));
+
+        if (results.length === ITEMS_LENGTH) {
+            setupInfiniteScrollObserver($("productGrid").lastElementChild, $("productGrid"));
         }
     };
 
-    const resetModalUI = () => {
-        const form = document.getElementById("productForm");
-        if (form) form.reset();
-        
-        const imagePreview = document.getElementById("imagePreview");
-        if (imagePreview) imagePreview.style.backgroundImage = 'none';
-        
-        const uploadIcon = document.getElementById("uploadIcon");
-        if (uploadIcon) uploadIcon.style.display = 'flex';
-        
-        state.currentProductImageUrl = null;
-        state.isFormDirty = false;
-        // Reset de abas (tabs) pode ser chamado aqui
-    };
+    modalEvents.refreshGrid = () => executeSearch(currentSearchQuery);
 
-    const openModal = (productId = null) => {
+    return {
+        executeSearch,
+        onSearchInput: (e) => {
+            const query = e.target.value.trim();
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => executeSearch(query), 300);
+        },
+        onSearchFocus: (e) => {
+            setTimeout(() => e.target.select(), 0);
+        }
+    };
+}
+
+let modalEventsRef = {};
+
+// ==========================================
+// MÓDULO: MODAL & FORMULÁRIO
+// ==========================================
+function setupModalEvents() {
+
+    const openModal = (product = null) => {
         resetModalUI();
-        state.currentProductId = productId;
-
-        if (productId) {
-            // Lógica de Edição: preencher os inputs do formulário com base no ID
-        }
-
-        document.getElementById("productModal").classList.remove("hidden");
-        document.getElementById("productModalPanel").scrollTop = 0;
-    };
-
-    const requestCloseModal = () => {
-        if (state.isFormDirty) {
-            document.getElementById("confirmExitModal").classList.remove("hidden");
-        } else {
-            closeModal();
-        }
+        if (product) setModalInputs(product);
+        else setModalInputs(null);
+        
+        $("productModal").classList.remove("hidden");
     };
 
     const closeModal = () => {
-        document.getElementById("productModal").classList.add("hidden");
-        document.getElementById("confirmExitModal").classList.add("hidden");
-        state.isFormDirty = false;
+        $("productModal").classList.add("hidden");
+        $("confirmExitModal").classList.add("hidden");
+        resetModalUI();
+    };
+
+    const requestCloseModal = () => {
+        const isDirty = $("productForm").getAttribute("data-dirty") === "true";
+        if (isDirty) {
+            $("confirmExitModal").classList.remove("hidden");
+        } else {
+            closeModal();
+        }
+    };
+
+    const parseMoney = (val) => {
+        if (!val) return 0;
+        const clean = val.toString().replace(',', '.');
+        return parseFloat(clean) || 0;
     };
 
     const events = {
-        onSearchInput: (e) => {
-            const val = e.target.value;
-            // O shouldSearch no math.js permite validar se faz sentido procurar (ex: >= 2 chars)
-            // Se for vazio (""), forçamos a pesquisa para repor a lista inicial
-            if (shouldSearch(val) || val === "") renderGrid(val);
-        },
-        
         onOpenNewModal: () => openModal(null),
-        onEditProduct: (id) => openModal(id),
-        
-        onCancelExit: () => document.getElementById("confirmExitModal").classList.add("hidden"),
+        onEditProduct: (id) => {
+            // Busca diretamente da array sequencial
+            const product = localProducts.find(p => p.id === id);
+            openModal(product);
+        },
+        onCancelExit: () => $("confirmExitModal").classList.add("hidden"),
         onConfirmExit: () => closeModal(),
-        
-        onFormInput: () => { state.isFormDirty = true; },
-        
+
+        onFormInput: () => {
+            $("productForm").setAttribute("data-dirty", "true");
+        },
+
         onSaveModal: async (e) => {
             e.preventDefault();
-            
-            const form = document.getElementById("productForm");
+
+            const form = e.target;
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
+            const pId = form.getAttribute("data-product-id");
 
             await saveProductDatabase({
-                id: state.currentProductId,
+                id: pId ? parseInt(pId) : null,
                 name: data.productName,
-                price: parseFloat(data.salesPrice) || 0,
-                // Restante mapeamento...
+                price: parseMoney(data.salesPrice),
+                cost: parseMoney(data.costPrice),
+                ref: data.reference || "",
+                productType: data.productType,
+                trackInventory: data.trackInventory === 'on',
+                onHand: parseInt(data.quantityOnHand) || null
             });
 
             closeModal();
-            renderGrid(document.getElementById("searchInput").value);
+            if (events.refreshGrid) await events.refreshGrid();
         },
 
         onBackdropClick: (e) => {
-            if (e.target.id === "productModal") {
-                requestCloseModal();
+            if (e.target.id === "productModal") requestCloseModal();
+        },
+        onRequestClose: () => requestCloseModal(),
+
+        onSwitchTab: (tabId) => {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+            $("tab-" + tabId).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-button').forEach(b => {
+                b.classList.remove('border-blue-600', 'text-blue-600', 'border-b-2');
+                b.classList.add('border-transparent', 'text-gray-500');
+            });
+
+            const activeBtn = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
+            if (activeBtn) {
+                activeBtn.classList.remove('border-transparent', 'text-gray-500');
+                activeBtn.classList.add('border-blue-600', 'text-blue-600', 'border-b-2');
+            }
+        },
+
+        onTypeChange: (e) => {
+            const type = e.target.value;
+
+            if (type === 'servico') {
+                $("trackInventory").checked = false;
+                $("trackInventory").disabled = true;
+                $("quantity-container").classList.add('hidden');
+                $("inventory-tracking-container").classList.add('opacity-50');
+            } else {
+                $("trackInventory").disabled = false;
+                $("inventory-tracking-container").classList.remove('opacity-50');
+
+                if (type === 'mercadoria') $("trackInventory").checked = true;
+
+                if ($("trackInventory").checked) $("quantity-container").classList.remove('hidden');
+                else $("quantity-container").classList.add('hidden');
+            }
+        },
+
+        onTrackChange: (e) => {
+            if (e.target.checked) {
+                $("quantity-container").classList.remove('hidden');
+            } else {
+                $("quantity-container").classList.add('hidden');
+                $("quantityOnHand").value = '';
             }
         }
     };
 
-    // Gera as ViewGens associando-lhes as funções de event handling
-    const widget = ProductMainWidget(events); 
-    const modal = ProductModal(events);
-    const confirmModal = ConfirmExitModal(events);
-
-    // Retorna os componentes para serem montados na página e a função para desenhar a lista
-    return { widget, modal, confirmModal, renderGrid };
+    modalEventsRef = events;
+    return events;
 }

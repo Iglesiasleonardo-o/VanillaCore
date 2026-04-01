@@ -123,7 +123,7 @@ We don't believe in external manuals that get outdated. We document at the point
 
 
 ## Security & Reliability
-By avoiding `innerHTML` and using a nested Append pattern, we ensure the app is immune to XSS attacks while maintaining maximum rendering performance. Every element is treated as a real object, not a string of text.
+By avoiding `innerText` and using a nested Append pattern, we ensure the app is immune to XSS attacks while maintaining maximum rendering performance. Every element is treated as a real object, not a string of text.
 
 ## License
 This project is licensed under the MIT License.
