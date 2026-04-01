@@ -5,7 +5,7 @@ VanillaCore proves that modern ES6+ features and a logic-centric pattern make bl
 
 ## Getting Started: No Install Required
 The **VanillaCore** architecture requires **no installation**. You can explore the core logic, documentation, and implementation examples directly by browsing the repository's public routes:
-* **Core Logic:** Check [`public/js/shared/README.md`](https://github.com/Iglesiasleonardo-o/VanillaCore/tree/main/public/js/shared) for the ViewGenCore documentation, including how it functions and various usage examples.
+* **Core Logic:** Check [`public/js/shared/README.md`](https://github.com/Iglesiasleonardo-o/VanillaCore/tree/main/public/js/vanilla-core) for the ViewGenCore documentation, including how it functions and various usage examples.
 * **Real-World Implementation:** See [`public/js/quotations/quotation/parts/header/header-viewgen.js`](https://github.com/Iglesiasleonardo-o/VanillaCore/blob/main/public/js/quotations/quotation/parts/header/header-viewgen.js) to see a practical application of the ViewGenCore in action.
 
 Full-Stack Sandbox (Optional):
