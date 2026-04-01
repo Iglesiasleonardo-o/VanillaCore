@@ -56,7 +56,7 @@ export function PaymentTermsWidget(viewModel, events) {
             button({
                 id: "managePaymentMethodsButton",
                 type: "button",
-                className: "w-full px-6 py-3 bg-gray-100 text-gray-700 text-base font-medium rounded-lg shadow-sm border border-gray-300 hover:bg-gray-200 transition duration-200 flex items-center justify-center gap-2",
+                className: "w-full py-3 bg-gray-50 text-blue-600 border border-dashed border-gray-300 rounded-lg font-medium text-sm hover:bg-blue-50 transition-colors flex items-center justify-center gap-2",
                 onclick: events.onOpenModal
             }).Append(
                 RichElement("i", { dataset: { lucide: "wallet" }, className: "w-5 h-5" }),
