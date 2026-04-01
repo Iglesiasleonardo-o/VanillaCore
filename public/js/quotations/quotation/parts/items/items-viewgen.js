@@ -1,4 +1,4 @@
-import { button, div, Icon, input, label, section, span, table, tbody, td, th, thead, tr } from "../../../../shared/viewgencore.js";
+import { button, div, Icon, input, label, section, span, table, tbody, td, th, thead, tr } from "../../../../vanilla-core/viewgencore.js";
 
 export function ItemsTableWidget(events, quoteItems, toQuoteRowViewModel) {
     const tableBody = tbody({

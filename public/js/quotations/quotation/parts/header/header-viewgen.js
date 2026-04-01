@@ -1,4 +1,4 @@
-import { div, h2, header, img, input, option, p, RichElement, select, span } from "../../../../shared/viewgencore.js";
+import { div, h2, header, img, input, option, p, RichElement, select, span } from "../../../../vanilla-core/viewgencore.js";
 
 export function HeaderView(quotation, viewModel, events) {
     const { issuer } = quotation;

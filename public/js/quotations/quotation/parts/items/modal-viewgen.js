@@ -1,4 +1,4 @@
-import { button, div, header, Icon, img, input, span } from "../../../../shared/viewgencore.js";
+import { button, div, header, Icon, img, input, span } from "../../../../vanilla-core/viewgencore.js";
 
 // --- MODAL & LOADERS ---
 export function ItemsModalWidget(events) {

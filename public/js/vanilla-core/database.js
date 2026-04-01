@@ -346,7 +346,6 @@ export const products = [
 // Unidades permitidas para referência
 export const validUnits = ["un", "m", "cm", "mm", "kg", "g"];
 
-// database.js (or wherever fetchProducts lives)
 export async function fetchProducts(query, cursor) {
     let results = [...products];
 

@@ -1,4 +1,4 @@
-import { a, button, div, h1, header, RichElement, span } from "../../../../shared/viewgencore.js";
+import { a, button, div, h1, header, RichElement, span } from "../../../../vanilla-core/viewgencore.js";
 
 export function NavigationHeader(quotationNumber, events) {
     return header({

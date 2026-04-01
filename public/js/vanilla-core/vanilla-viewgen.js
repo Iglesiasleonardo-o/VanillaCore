@@ -1,7 +1,7 @@
 // Here lives the html core elements
 // The sidebar, the header, the footer, the main content
 
-import { a, div, nav, RichElement, span } from '../shared/viewgencore.js';
+import { a, div, nav, RichElement, span } from './viewgencore.js';
 
 export function createMainView(user) {
     return div({ id: "body-wrapper", className: "bg-gray-100 flex" }).Append(

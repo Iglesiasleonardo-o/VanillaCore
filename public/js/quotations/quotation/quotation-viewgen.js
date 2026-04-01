@@ -1,4 +1,4 @@
-import { a, button, div, footer, h2, p, RichElement, span } from "../../shared/viewgencore.js";
+import { a, button, div, footer, h2, p, RichElement, span } from "../../vanilla-core/viewgencore.js";
 
 export function LoadingState() {
     return div({

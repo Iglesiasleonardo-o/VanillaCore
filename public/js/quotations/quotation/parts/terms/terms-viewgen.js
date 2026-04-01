@@ -1,4 +1,4 @@
-import { div, header, footer, h2, h3, h4, button, span, p, label, select, option, input, RichElement } from "../../../../shared/viewgencore.js";
+import { div, header, footer, h2, h3, h4, button, span, p, label, select, option, input, RichElement } from "../../../../vanilla-core/viewgencore.js";
 
 // ==========================================
 // 1. WIDGET (Replicated exactly from your HTML)

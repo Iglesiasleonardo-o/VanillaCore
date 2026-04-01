@@ -1,4 +1,4 @@
-import { button, div, footer, form, h1, h2, h3, header, input, label, p, RichElement, section, span, textarea, ul, li } from "../../../../shared/viewgencore.js";
+import { button, div, footer, form, h1, h2, h3, header, input, label, p, RichElement, section, span, textarea, ul, li } from "../../../../vanilla-core/viewgencore.js";
 
 export function CustomerSection(viewModel, events) {
     return div({ className: "flex justify-between items-end" }).Append(

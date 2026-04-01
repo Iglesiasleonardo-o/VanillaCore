@@ -1,4 +1,4 @@
-import { fetchCustomers } from "../../../database.js";
+import { fetchCustomers } from "../../../../vanilla-core/database.js";
 
 let debounceTimer = null;
 

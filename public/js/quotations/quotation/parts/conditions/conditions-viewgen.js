@@ -1,4 +1,4 @@
-import { div, h4, span, input, p, label, textarea } from "../../../../shared/viewgencore.js";
+import { div, h4, span, input, p, label, textarea } from "../../../../vanilla-core/viewgencore.js";
 
 export function GeneralConditionsWidget(vm, events) {
     return div({ className: "w-1/2" }).Append(
