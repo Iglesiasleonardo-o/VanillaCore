@@ -25,3 +25,4 @@ export function createProductCardViewModel(product) {
 export function createProductListViewModel(products) {
     return products.map(createProductCardViewModel);
 }
+

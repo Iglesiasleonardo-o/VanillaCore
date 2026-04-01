@@ -1,15 +1,14 @@
-import { 
-    button, div, form, h1, h2, h3, header, img, input, p, span, 
-    i, main, nav, footer, label, textarea, fieldset, hr, select, option, RichElement 
+import {
+    button, div, form, h1, h2, h3, header, img, input, p, span,
+    i, main, nav, footer, label, textarea, fieldset, hr, select, option, RichElement
 } from "../vanilla-core/viewgencore.js";
 
 // ==========================================
 // 1. LAYOUT & ESTADOS DA PÁGINA
 // ==========================================
 
-export function ProductsPageLayout(sidebar, mainContent) {
+export function ProductsPageLayout(mainContent) {
     return div({ className: "flex bg-gray-100 min-h-screen" }).Append(
-        sidebar,
         div({ className: "flex-1 ml-20" }).Append(
             div({ id: "app" }).Append(
                 mainContent
@@ -123,14 +122,45 @@ export function ConfirmExitModal(events) {
     );
 }
 
+import { formatCurrency } from "./product-math.js";
+
+export function createProductCardViewModel(product) {
+    const hasStock = product.onHand !== null;
+    const stockText = hasStock ? `${product.onHand} em mão` : 'Serviço/Sob Demanda';
+
+    let stockColor = 'text-gray-500';
+
+    if (hasStock) {
+        if (product.onHand > 20) stockColor = 'text-green-600';
+        else if (product.onHand > 0) stockColor = 'text-yellow-600';
+        else stockColor = 'text-red-600';
+    }
+
+    return {
+        id: product.id,
+        name: product.name,
+        priceFormatted: formatCurrency(product.price),
+        stockText: stockText,
+        stockColor: stockColor,
+        imgSrc: product.img || 'https://placehold.co/400x400/CCCCCC/333333?text=Imagem+Indisponível'
+    };
+}
+
+export function createProductListViewModel(products) {
+    return products.map(createProductCardViewModel);
+}
+
 export function ProductModal(events) {
-    return div({ id: "productModal", className: "fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50", onclick: events.onBackdropClick }).Append(
-        div({ id: "productModalPanel", className: "bg-white w-full max-w-4xl h-full max-h-[95vh] rounded-xl shadow-2xl flex flex-col overflow-auto" }).Append(
-            
+    return div({ id: "productModal", className: "fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50", onclick: events.onBackdropClick }).Append(
+
+        // 1. O painel principal (que engloba o Header, Corpo e Footer) passa a ser a tag <form>
+        form({ id: "productForm", className: "bg-white w-full max-w-4xl h-full max-h-[95vh] rounded-xl shadow-2xl flex flex-col overflow-auto" }).Append(
+
             // CABEÇALHO DO MODAL
             header({ className: "p-4 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white z-10" }).Append(
                 div({ className: "flex items-center gap-3" }).Append(
-                    button({ id: "saveButtonHeader", type: "submit", form: "productForm", className: "px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition duration-200", textContent: "Guardar Produto" }),
+                    // Botão tipo "submit" dentro do formulário não precisa do atributo 'form'
+                    button({ id: "saveButtonHeader", type: "submit", className: "px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition duration-200", textContent: "Guardar Produto" }),
                     button({ id: "cancelButtonHeader", type: "button", className: "px-4 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg shadow-sm hover:bg-gray-50 transition duration-200", textContent: "Cancelar" })
                 ),
                 button({ id: "closeModalButton", type: "button", className: "text-gray-400 hover:text-gray-600" }).Append(
@@ -138,8 +168,8 @@ export function ProductModal(events) {
                 )
             ),
 
-            // CORPO DO FORMULÁRIO (Totalmente modularizado)
-            form({ id: "productForm", className: "flex-grow p-6 overflow-y-auto" }).Append(
+            // CORPO DO MODAL (passa a ser uma div com scroll)
+            div({ className: "flex-grow p-6 overflow-y-auto" }).Append(
                 ProductTabsNav(),
                 ProductFormGeneralTab(),
                 ProductFormVariantsTab(),
@@ -150,11 +180,12 @@ export function ProductModal(events) {
             // RODAPÉ DO MODAL
             footer({ className: "p-4 border-t border-gray-200 flex items-center justify-end gap-3 sticky bottom-0 bg-gray-50 z-10" }).Append(
                 button({ id: "cancelButton", type: "button", className: "px-4 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg shadow-sm hover:bg-gray-50 transition duration-200", textContent: "Cancelar" }),
-                button({ id: "saveButton", type: "submit", form: "productForm", className: "px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition duration-200", textContent: "Guardar Produto" })
+                // Botão tipo "submit" sem a necessidade do atributo 'form'
+                button({ id: "saveButton", type: "submit", className: "px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition duration-200", textContent: "Guardar Produto" })
             )
         )
     );
-}
+} 
 
 // ==========================================
 // 4. SUBCOMPONENTES DO FORMULÁRIO
@@ -173,7 +204,7 @@ function ProductTabsNav() {
 
 function ProductFormGeneralTab() {
     return div({ id: "tab-general", className: "tab-panel space-y-6" }).Append(
-        
+
         // Categoria, SKU e EAN
         div({ className: "grid grid-cols-1 md:grid-cols-3 gap-6" }).Append(
             div().Append(
@@ -189,9 +220,9 @@ function ProductFormGeneralTab() {
                 input({ type: "text", id: "barcode", name: "barcode", className: "mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" })
             )
         ),
-        
+
         hr({ className: "border-gray-200" }),
-        
+
         // Imagem, Nome e Descrição
         div({ className: "grid grid-cols-1 md:grid-cols-3 gap-6" }).Append(
             div({ className: "md:col-span-1" }).Append(

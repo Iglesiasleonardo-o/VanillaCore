@@ -1,9 +1,7 @@
-import { globalState } from "../vanilla-core/vanilla-global-state.js";
 import { RenderView } from "../vanilla-core/vanilla-render.js";
 import { fetchInitialProducts, searchProductsDatabase, saveProductDatabase } from "./product-network.js";
 import { shouldSearch } from "./product-math.js";
 import { createProductListViewModel } from "./product-viewmodel.js";
-// import { setupSidebar } from "../navigation/sidebar-render.js"; 
 import { 
     ProductsPageLayout, 
     LoadingState, 
