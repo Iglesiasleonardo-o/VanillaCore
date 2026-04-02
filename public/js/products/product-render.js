@@ -151,7 +151,7 @@ function setupGridEvents(modalEvents) {
 
         if (gridObserver) gridObserver.disconnect();
 
-        $("productGrid").innerHTML = ""; 
+        $("productGrid").textContent = ""; 
         $("gridLoadingIndicator").classList.remove("hidden");
 
         const results = await loadProductsData(currentSearchQuery, currentCursor);
