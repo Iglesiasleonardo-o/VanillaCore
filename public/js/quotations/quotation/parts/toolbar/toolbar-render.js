@@ -1,5 +1,6 @@
 import { NavigationHeader } from './toolbar-viewgen.js';
 import { executeSave } from './toolbar-network.js';
+import { loadQuotationsListByURL } from '../../../quotations-render.js';
 
 export function setupNavigationToolbar(quotationNumber) {
     const events = setupEvents();
@@ -8,6 +9,12 @@ export function setupNavigationToolbar(quotationNumber) {
 
 function setupEvents() {
     return {
+        onBackToListClick: (e) => {
+            e.preventDefault();
+            history.pushState(null, "", "/quotations");
+            loadQuotationsListByURL();
+        },
+
         onPrintClick: () => window.print(),
         onCloneClick: () => console.log("Clone logic..."),
         onSaveClick: async () => {

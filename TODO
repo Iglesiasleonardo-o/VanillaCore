@@ -1,3 +1,9 @@
 * Lista de cotações
 * Clientes, Eventos (Lista com intersection observer, Pesquisar, Editar, Guardar)
 * Sidebar com apenas o que funciona
+
+<!-- FAZER WIDGETS REUTILIZÁVEIS, BEM BONITOS, PARA NÃO TER DE FAZER A MESMA COISA SEMPRE -->
+* Estilo de Componentes mais utilizados, toolbar ou header, FAB
+* Botões, formulários com Opcional ou Não Opcional
+* Loading de pagina similares, lazy loading tambem similares
+* Modals com efeitos, close super similares

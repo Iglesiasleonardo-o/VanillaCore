@@ -6,16 +6,17 @@ export function NavigationHeader(quotationNumber, events) {
         // Estilo unificado: Branco, com sombra, sticky e bordas arredondadas em baixo
         className: "sticky no-print top-0 z-30 bg-white border-b border-gray-200 px-4 md:px-8 py-4 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4"
     }).Append(
-        BackLink(),
+        BackLink(events),
         PageTitle(quotationNumber),
         ActionToolbar(events),
         PrintFAB(events)
     );
 }
 
-function BackLink() {
+function BackLink(events) {
     return a({
         href: "/quotations",
+        onclick: events.onBackToListClick,
         className: "group flex items-center gap-3 text-md font-bold text-gray-400 hover:text-blue-600 transition-all duration-300"
     }).Append(
         div({ className: "p-2 rounded-xl group-hover:bg-blue-50 border border-transparent group-hover:border-blue-100 transition-all" }).Append(
