@@ -34,13 +34,13 @@ export function CustomersHeader(events) {
             input({
                 id: "searchInput", type: "text", placeholder: "Pesquisar por nome, email ou NUIT...",
                 oninput: events.onSearchInput,
-                className: "pl-11 pr-4 py-2.5 w-full border border-gray-300 bg-gray-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-gray-700"
+                className: "pl-12 pr-4 py-2.5 w-full border border-gray-300 bg-gray-50 rounded-xl shadow-inner focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-gray-700"
             })
         ),
 
         button({
             onclick: events.onOpenNewModal,
-            className: "flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition duration-200 shrink-0"
+            className: "flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl shadow hover:bg-blue-700 transition duration-200 shrink-0"
         }).Append(
             RichElement("i", { dataset: { lucide: "plus" }, className: "w-5 h-5" }),
             span({ textContent: "Novo Cliente" })
