@@ -1,6 +1,5 @@
-* Lista de cotações
-* Clientes, Eventos (Lista com intersection observer, Pesquisar, Editar, Guardar)
 * Sidebar com apenas o que funciona
+* Loading inicial genérico para as páginas
 
 <!-- FAZER WIDGETS REUTILIZÁVEIS, BEM BONITOS, PARA NÃO TER DE FAZER A MESMA COISA SEMPRE -->
 * Estilo de Componentes mais utilizados, toolbar ou header, FAB
