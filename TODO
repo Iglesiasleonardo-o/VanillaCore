@@ -1,8 +1,15 @@
-* Sidebar com apenas o que funciona
-* Loading inicial genérico para as páginas
+* Sidebar com tudo a funcionar, remover inventário por enquanto
 
-<!-- FAZER WIDGETS REUTILIZÁVEIS, BEM BONITOS, PARA NÃO TER DE FAZER A MESMA COISA SEMPRE -->
-* Estilo de Componentes mais utilizados, toolbar ou header, FAB
-* Botões, formulários com Opcional ou Não Opcional
-* Loading de pagina similares, lazy loading tambem similares
-* Modals com efeitos, close super similares
+<!-- STYLES -->
+* FAB para todos como /profile onde muda a cor para verde após guardar, mas com um ícone
+* Modal com animações e close de /customers com botões acima e abaixo como /products, rounded-2xl
+* Botões em geral devem ter xl. PrimaryButton, ClearButton
+* Input como /profile mas com focus:border-blue-300
+* Input para string (minLength, maxLength) e para números (min, max)
+* Input opcional e obrigatório
+* Carregar imagem como /profile
+* Todos estes podem ter properties próprios através de objectos {} e spread ...
+* Toolbar genérico, ListToolbar (Search no meio), 
+* Tabs de formularios
+* LazyList, parametros (length e offset), funciona em qualquer espaço, deve ter loading inicial, loading debaixo, recebe qualquer cartão ou lista vertical
+* Loading ao sair de uma página para outra se o request ultrapassar o tempo aceitável pelas pessoas
