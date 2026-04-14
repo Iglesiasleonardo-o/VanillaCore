@@ -14,10 +14,11 @@ function createSidebar(user, onRouteChange) {
     return nav({
         className: "fixed top-0 left-0 h-screen w-20 bg-gray-900 text-white flex flex-col items-center py-6 space-y-4 z-40 no-print"
     }).Append(
-        // LOGO
-        div({
+        a({
+            id: "-nav",
+            href: "/",
             className: "p-2.5 bg-blue-600 rounded-lg cursor-pointer mb-6",
-            // onclick: () => Router.go('dashboard')
+            onclick: e => onRouteChange(e, "")
         }).Append(
             RichElement("i", { className: "w-8 h-8", dataset: { lucide: "blocks" } })
         ),
@@ -34,7 +35,7 @@ function createSidebar(user, onRouteChange) {
 function createNavItem(iconName, label, colors, route, onRouteChange) {
     return a({
         id: `${route}-nav`,
-        href: "/" + route,
+        href: `/${route}`,
         className: `group relative flex items-center justify-center p-3 rounded-lg transition-colors hover:bg-gray-800 ${colors}`,
         onclick: (e) => onRouteChange(e, route)
     }).Append(

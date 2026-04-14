@@ -20,14 +20,14 @@ function updateUiByPathname(state) {
     routes[matchPathname(routes)](state);
 }
 
-export function renderInitialView() {
-    const onRouteChange = (e, route) => {
-        e.preventDefault();
-        history.pushState(null, null, route);
-        updateUiByPathname(e.state);
-        setActiveNav(route);
-    }
+function onRouteChange(e, route) {
+    e.preventDefault();
+    history.pushState(null, null, `/${route}`);
+    updateUiByPathname(e.state);
+    setActiveNav(route);
+}
 
+export function renderInitialView() {
     document.body.textContent = '';
     document.body.appendChild(
         createMainView({}, onRouteChange)
@@ -36,7 +36,7 @@ export function renderInitialView() {
 }
 
 function setInitialRoute() {
-    setActiveNav(location.pathname.split("/")[1] || "quotations");
+    setActiveNav(location.pathname.split("/")[1]);
 }
 
 function setActiveNav(route) {

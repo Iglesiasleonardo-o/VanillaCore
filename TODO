@@ -1,6 +1,4 @@
-* Sidebar com tudo a funcionar, remover inventário por enquanto
-
-<!-- STYLES -->
+<!-- COMPONENTS -->
 * FAB para todos como /profile onde muda a cor para verde após guardar, mas com um ícone
 * Modal com animações e close de /customers com botões acima e abaixo como /products, rounded-2xl
 * Botões em geral devem ter xl. PrimaryButton, ClearButton
