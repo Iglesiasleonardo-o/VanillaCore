@@ -7,7 +7,7 @@ import app from './vanilla-core/app.js';
 const server = createServer(app);
 
 // Standard HTTP port is 80, or 3000 for local dev
-const PORT = 80; 
+const PORT = 3000; 
 const HOST = "localhost"; 
 
 server.listen(PORT, HOST, () => {

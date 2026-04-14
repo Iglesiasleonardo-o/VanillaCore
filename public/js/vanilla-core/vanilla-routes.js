@@ -12,4 +12,7 @@ export const routes = {
     "/profile": loadProfileByURL,
     "/customers": loadCustomersByURLEvent,
     "/404": () => { alert("404 - Page not found, or still being developed") },
+    "/": function () {
+        $("main-wrapper").innerHTML = ``;
+    }
 }

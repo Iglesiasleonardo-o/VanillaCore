@@ -1,7 +1,7 @@
 import { div, span, header, h1, h2, h3, h4, p, button, select, option, input, a, RichElement } from "../vanilla-core/viewgencore.js";
 
 export function QuotationsPageLayout(mainContent) {
-    return div({ className: "bg-gray-50/50 min-h-screen flex flex-col font-sans text-gray-900" }).Append(
+    return div({ className: "bg-gray-50/50 min-h-screen flex flex-col text-gray-900" }).Append(
         mainContent
     );
 }

@@ -3,14 +3,14 @@
 
 import { a, div, nav, RichElement, span } from './viewgencore.js';
 
-export function createMainView(user) {
+export function createMainView(user, onRouteChange) {
     return div({ id: "body-wrapper", className: "bg-gray-100 flex" }).Append(
-        createSidebar(user),
+        createSidebar(user, onRouteChange),
         div({ id: "main-wrapper", className: "ml-20 print:ml-0 flex-1 h-screen overflow-y-auto" })
     );
 }
 
-function createSidebar() {
+function createSidebar(user, onRouteChange) {
     return nav({
         className: "fixed top-0 left-0 h-screen w-20 bg-gray-900 text-white flex flex-col items-center py-6 space-y-4 z-40 no-print"
     }).Append(
@@ -22,22 +22,21 @@ function createSidebar() {
             RichElement("i", { className: "w-8 h-8", dataset: { lucide: "blocks" } })
         ),
         div({ className: "flex flex-col space-y-3 pt-6" }).Append(
-            createNavItem("clipboard-list", "Cotações", "text-white bg-blue-600 shadow-lg", "quotations"),
-            createNavItem("shopping-cart", "Ponto de Venda", "text-green-400", "pos"),
-            createNavItem("package", "Produtos", "text-blue-400", "products"),
-            createNavItem("warehouse", "Inventário", "text-yellow-400", "inventory"),
-            createNavItem("users", "Clientes", "text-blue-400", "customers"),
-            createNavItem("user-cog", "Utilizadores", "text-red-400", "users")
+            createNavItem("clipboard-list", "Cotações", "text-white", "quotations", onRouteChange),
+            createNavItem("package", "Produtos", "text-emerald-400", "products", onRouteChange),
+            createNavItem("users", "Clientes", "text-sky-400", "customers", onRouteChange),
+            createNavItem("user-cog", "Perfil", "text-rose-400", "profile", onRouteChange)
         )
     );
 }
 
 // Função auxiliar para não repetir código de botões
-function createNavItem(iconName, label, colors, route) {
+function createNavItem(iconName, label, colors, route, onRouteChange) {
     return a({
-        href: route,
+        id: `${route}-nav`,
+        href: "/" + route,
         className: `group relative flex items-center justify-center p-3 rounded-lg transition-colors hover:bg-gray-800 ${colors}`,
-        // onclick: () => Router.go(route)
+        onclick: (e) => onRouteChange(e, route)
     }).Append(
         RichElement("i", { className: "w-6 h-6", dataset: { lucide: iconName } }),
         span({
