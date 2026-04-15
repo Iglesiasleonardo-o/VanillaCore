@@ -1,3 +1,4 @@
+import { PrimaryButton } from "../shared/widgets.js";
 import {
     button, div, form, h1, h2, h3, header, img, input, p, span,
     main, nav, footer, label, textarea, fieldset, hr, select, option, RichElement
@@ -71,14 +72,11 @@ export function ProductPageHeader(events) {
                 onfocus: events.onSearchFocus
             })
         ),
-
-        button({
-            id: "showModalButton",
-            className: "flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl shadow hover:bg-blue-700 transition duration-200 shrink-0",
-            onclick: events.onOpenNewModal
-        }).Append(
-            RichElement("i", { dataset: { lucide: "plus" }, className: "w-5 h-5" }),
-            span({ textContent: "Adicionar Produto" })
+        PrimaryButton(
+            "showModalButton",
+            "Adicionar Produto",
+            "plus",
+            events.onOpenNewModal
         )
     );
 }

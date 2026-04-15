@@ -12,8 +12,11 @@ export const routes = {
     "/profile": loadProfileByURL,
     "/customers": loadCustomersByURLEvent,
     "/404": () => { alert("404 - Page not found, or still being developed") },
-    "/": function () {
-        $("main-wrapper").innerHTML = `
+    "/": () => $("main-wrapper").innerHTML = DefaultView()
+}
+
+function DefaultView() {
+    return `
     <div class="flex items-center justify-center h-full px-6">
         <div class="text-center max-w-md">
             
@@ -29,9 +32,7 @@ export const routes = {
                 Estou a preparar uma área de notificações para ti.  
                 Por agora, podes explorar as opções no menu à esquerda.
             </p>
-
         </div>
     </div>
 `;
-    }
 }

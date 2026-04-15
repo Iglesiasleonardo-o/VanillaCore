@@ -1,4 +1,4 @@
-import { div, span, header, h1, h2, h3, h4, p, button, select, option, input, a, RichElement } from "../vanilla-core/viewgencore.js";
+import { div, span, header, h1, h2, h3, h4, p, button, select, option, input, a, RichElement, li } from "../vanilla-core/viewgencore.js";
 
 export function QuotationsPageLayout(mainContent) {
     return div({ className: "bg-gray-50/50 min-h-screen flex flex-col text-gray-900" }).Append(
@@ -65,7 +65,7 @@ export function QuoteCard(quoteVM, events) {
             ),
             span({ className: `status-badge ${quoteVM.badgeClass} shadow-sm border border-black/5 px-2.5 py-1 text-xs font-bold uppercase tracking-wider rounded-lg`, textContent: quoteVM.status })
         ),
-        
+
         // Corpo do Card
         div({ className: "p-5 flex-grow z-10 bg-white pointer-events-none" }).Append(
             h4({ className: "text-base font-bold text-gray-800 line-clamp-1 mb-1.5", title: quoteVM.customer, textContent: quoteVM.customer }),
@@ -73,12 +73,12 @@ export function QuoteCard(quoteVM, events) {
                 RichElement("i", { dataset: { lucide: "building-2" }, className: "w-3.5 h-3.5 text-gray-400" }),
                 p({ className: "text-xs font-semibold text-gray-600 uppercase tracking-wide", textContent: `NUIT: ${quoteVM.nuit}` })
             ),
-            
+
             // Datas com Ícones
             div({ className: "mt-5 space-y-2" }).Append(
                 div({ className: "flex items-center gap-2 text-sm text-gray-500" }).Append(
                     RichElement("i", { dataset: { lucide: "calendar" }, className: "w-4 h-4 text-gray-400" }),
-                    span({ textContent: "Emissão:" }), 
+                    span({ textContent: "Emissão:" }),
                     span({ className: "font-semibold text-gray-700", textContent: quoteVM.date })
                 ),
                 div({ className: `flex items-center gap-2 text-sm ${quoteVM.expiryColor}` }).Append(
@@ -87,7 +87,7 @@ export function QuoteCard(quoteVM, events) {
                 )
             )
         ),
-        
+
         // Footer do Card
         div({ className: "px-5 py-4 border-t border-gray-50 flex justify-between items-center bg-gray-50/50 z-10" }).Append(
             span({ className: "text-xl font-black text-gray-900 tracking-tight", textContent: quoteVM.formattedTotal }),
