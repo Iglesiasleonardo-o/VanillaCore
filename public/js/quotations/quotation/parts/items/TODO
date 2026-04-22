@@ -1,0 +1,15 @@
+<!--  -->
+
+<!-- DAY 1 -->
+* Make modal observer work
+* If no more items remove observer, show "There are no more products in database".
+
+<!-- DAY 2 and maybe 3 -->
+* Make search work
+* Search must work even with observer
+
+<!-- DONE -->
+* Make modal add work, adds a quote row
+* Make modal quantity plus, minus, change work DONE
+* Make modal disc plus, minus, change work DONE
+* Make modal remove work, removes a quote row

@@ -1,0 +1,248 @@
+/*   */
+
+/* Fonte Inter */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+button {
+    cursor: pointer;
+}
+
+/* Ocultar scrollbar do modal */
+#clientModalPanel::-webkit-scrollbar {
+    display: none;
+}
+
+#clientModalPanel {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Garante que o tooltip não pisque */
+.sidebar-tooltip {
+    pointer-events: none;
+}
+
+/* Animação para mostrar/ocultar campo de Posição */
+.field-container {
+    transition: all 0.3s ease-in-out;
+    overflow: hidden;
+    max-height: 200px;
+    /* Altura suficiente para o campo */
+    opacity: 1;
+}
+
+.field-container.hidden {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    /* Remove margem quando oculto */
+}
+
+/* Ocultar scrollbar do modal */
+.modal-panel::-webkit-scrollbar {
+    display: none;
+}
+
+.modal-panel {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.sidebar-tooltip {
+    pointer-events: none;
+}
+
+/* --- ESTILOS DO MODAL --- */
+.modal-hidden {
+    display: none;
+}
+
+#modalContainer {
+    transition: all 0.3s ease-in-out;
+    transform: scale(0.95);
+    opacity: 0;
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
+body.modal-open #modalContainer {
+    transform: scale(1);
+    opacity: 1;
+}
+
+@media print {
+    body {
+        /* Força o navegador a imprimir cores e imagens de fundo */
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Se quiser garantir que um elemento específico (ex: o cabeçalho azul) mantenha a cor */
+    .bg-blue-600 {
+        background-color: #2563eb !important;
+        -webkit-print-color-adjust: exact !important;
+    }
+
+    html,
+    body,
+    main,
+    #app,
+    .overflow-y-auto,
+    .overflow-x-auto {
+        height: auto !important;
+        min-height: auto !important;
+        overflow: visible !important;
+        position: static !important;
+        display: block !important;
+        background: #fff !important;
+    }
+
+    #sidebarNav,
+    #productSelectionModal,
+    #customerSelectionModal,
+    #paymentMethodModal,
+    #mainHeader,
+    #breadcrumbs,
+    #fabPrintButtonWrapper,
+    .no-print {
+        display: none !important;
+    }
+
+    #mainContent {
+        margin-left: 0 !important;
+        padding: 0 !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    #app {
+        padding: 0 !important;
+    }
+
+    #a4Page {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        height: auto !important;
+        min-height: 0 !important;
+    }
+
+    #a4Page header .flex-col.items-end img {
+        margin-bottom: 0.5rem !important;
+    }
+
+    .mt-12 {
+        margin-top: 1.5rem !important;
+    }
+
+    .mt-8 {
+        margin-top: 0.5rem !important;
+    }
+
+    .pt-8 {
+        padding-top: 1rem !important;
+    }
+
+    .pb-8 {
+        padding-bottom: 0.5rem !important;
+    }
+
+    .my-6 {
+        margin-block: 1rem !important;
+    }
+
+    #quoteItemsTableBody td,
+    thead th.p-3 {
+        padding: 0.25rem 0.5rem !important;
+    }
+
+    #quoteItemsTableBody td.p-3.align-top.text-center {
+        padding-inline: 0.25rem !important;
+    }
+
+    table {
+        page-break-inside: auto;
+    }
+
+    tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+
+    .print-only {
+        display: inline !important;
+    }
+
+    .print-pre-line {
+        white-space: pre-line !important;
+    }
+
+    .text-gray-800 {
+        color: #1f2937 !important;
+    }
+
+    .text-gray-700 {
+        color: #374151 !important;
+    }
+
+    .text-gray-600 {
+        color: #4b5563 !important;
+    }
+
+    .text-gray-500 {
+        color: #6b7280 !important;
+    }
+
+    .text-blue-600 {
+        color: #2563eb !important;
+    }
+
+    .bg-gray-50 {
+        background-color: #f9fafb !important;
+    }
+
+    .border-gray-200 {
+        border-color: #e5e7eb !important;
+    }
+
+    .border-b {
+        border-bottom-width: 1px !important;
+    }
+
+}
+
+@page {
+    size: A4;
+    margin: 1.5cm;
+}
+
+/* No seu global.css */
+.dropdown-menu::before {
+    content: "";
+    position: absolute;
+    top: -12px;
+    /* Aumente este valor se o 'mt-2' do Tailwind for maior */
+    left: 0;
+    right: 0;
+    height: 12px;
+    /* A altura da ponte invisível */
+    background: transparent;
+}
+
+/* Garante que o hover e o focus mantenham o menu visível */
+.dropdown:hover .dropdown-menu,
+.dropdown:focus-within .dropdown-menu {
+    display: block !important;
+}
