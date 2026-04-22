@@ -2,7 +2,6 @@ import { createServer } from "http"; // Changed from 'https'
 import "./vanilla-core/mongo.js"; //init mongo here
 // import './redis.js'; //if fast auth is needed
 import app from "./vanilla-core/app.js";
-
 // No serverOptions needed for HTTP
 const server = createServer(app);
 
