@@ -11,7 +11,7 @@ export const users = database.collection("users");
 
 async function connectToDatabase() {
     try {
-        console.log("Connecting to mongodb database...");
+        console.log('Connecting to', URI);
         await client.connect();
         console.log("Successfully connected to MongoDB!");
     } catch (error) {
