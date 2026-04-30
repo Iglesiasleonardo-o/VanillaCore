@@ -3,8 +3,6 @@ import { fetchProfile } from "./profile-network.js";
 import { LoadingState, PaymentMethodItem, ProfileHeader, ProfileMain, ProfileNotFound, SaveButtonDefault, SaveButtonSuccess } from "./profile-viewgen.js";
 import { createProfileViewModel } from "./profile-viewmodel.js";
 
-const $ = (id) => document.getElementById(id);
-
 export async function loadProfileByURL() {
     try {
         const loadingDiv = LoadingState();

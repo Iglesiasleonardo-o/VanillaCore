@@ -3,7 +3,7 @@
 
 import { a, div, nav, RichElement, span } from './viewgencore.js';
 
-export function createMainView(user, onRouteChange) {
+export function MainView(user, onRouteChange) {
     return div({ id: "body-wrapper", className: "bg-gray-100 flex" }).Append(
         createSidebar(user, onRouteChange),
         div({ id: "main-wrapper", className: "ml-20 print:ml-0 flex-1 h-screen overflow-y-auto" })

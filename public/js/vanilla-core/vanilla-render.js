@@ -1,4 +1,4 @@
-import { createMainView } from "./vanilla-viewgen.js";
+import { MainView } from "./vanilla-viewgen.js";
 import { matchPathname } from "./vanilla-router.js";
 import { routes } from "./vanilla-routes.js";
 
@@ -30,7 +30,7 @@ function onRouteChange(e, route) {
 export function renderInitialView() {
     document.body.textContent = '';
     document.body.appendChild(
-        createMainView({}, onRouteChange)
+        MainView({}, onRouteChange)
     );
     setInitialRoute();
 }
