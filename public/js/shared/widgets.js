@@ -1,7 +1,17 @@
 import { button, RichElement, span } from "../vanilla-core/viewgencore.js";
 
-export function FAB() {
-    
+export function FAB(id, text, lucideIcon, onclick) {
+    return button({
+        id,
+        type: "button",
+        onclick,
+        className: "fixed bottom-8 right-8 flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white font-bold rounded-full shadow-2xl hover:bg-blue-700 hover:scale-105 transition-all duration-200 z-50"
+    }).Append(
+        div({ className: "flex items-center gap-2 pointer-events-none" }).Append(
+            RichElement("i", { dataset: { lucide: lucideIcon }, className: "w-5 h-5" }),
+            span({ textContent: text })
+        )
+    );
 }
 
 export function PrimaryButton(id, text, lucideIcon, onclick) {
@@ -15,5 +25,5 @@ export function PrimaryButton(id, text, lucideIcon, onclick) {
 }
 
 export function LazyList(offset, length) {
-    
+
 }
