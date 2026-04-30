@@ -1,3 +1,4 @@
+import { PrimaryFAB } from "../../../../shared/widgets.js";
 import { a, button, div, h1, header, RichElement, span } from "../../../../vanilla-core/viewgencore.js";
 
 export function NavigationHeader(quotationNumber, events) {
@@ -9,7 +10,7 @@ export function NavigationHeader(quotationNumber, events) {
         BackLink(events),
         PageTitle(quotationNumber),
         ActionToolbar(events),
-        PrintFAB(events)
+        PrimaryFAB("fabPrintButtonWrapper", "Imprimir a cotação", "printer", events.onPrintClick)
     );
 }
 
@@ -118,23 +119,5 @@ function DropdownItem({ icon, label, sublabel, onclick, className = "", iconColo
             span({ className: `text-sm font-bold text-gray-700 transition-colors ${hoverColor}`, textContent: label }),
             span({ className: "text-xs text-gray-400", textContent: sublabel })
         )
-    );
-}
-
-function PrintFAB(events) {
-    return div({
-        id: "fabPrintButtonWrapper",
-        className: "group  fixed bottom-8 right-8 z-40"
-    }).Append(
-        button({
-            id: "fabPrintButton",
-            className: "w-16 h-16 bg-gray-900 text-white rounded-full flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:bg-blue-600 hover:scale-110 active:scale-90 transition-all duration-300", onclick: events.onPrintClick
-        }).Append(
-            RichElement("i", { dataset: { lucide: "printer" }, className: "w-7 h-7" })
-        ),
-        span({
-            className: "absolute right-full top-1/2 -translate-y-1/2 mr-4 px-3 py-2 bg-gray-900 text-white text-xs font-bold rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none",
-            textContent: "IMPRIMIR A COTAÇÃO"
-        })
     );
 }

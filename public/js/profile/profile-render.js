@@ -1,6 +1,6 @@
 import { RenderView } from "../vanilla-core/vanilla-render.js";
 import { fetchProfile } from "./profile-network.js";
-import { LoadingState, PaymentMethodItem, ProfileHeader, ProfileMain, ProfileNotFound, SaveButtonDefault, SaveButtonSuccess } from "./profile-viewgen.js";
+import { LoadingState, PaymentMethodItem, ProfileHeader, ProfileMain, ProfileNotFound } from "./profile-viewgen.js";
 import { createProfileViewModel } from "./profile-viewmodel.js";
 
 export async function loadProfileByURL() {
@@ -162,7 +162,7 @@ const setupProfileEvents = (profileData) => {
             // Alocação linear direta mais rápida que .map()
             const methodsLength = paymentTitles.length;
             data.paymentMethods = new Array(methodsLength);
-            
+
             for (let i = 0; i < methodsLength; i++) {
                 data.paymentMethods[i] = {
                     title: paymentTitles[i],
@@ -174,17 +174,12 @@ const setupProfileEvents = (profileData) => {
 
             // Abstração de alteração visual para garantir escalabilidade
             const setButtonState = (btn, isSuccess) => {
-                if (!btn) return;
-                
-                btn.textContent = '';
-                btn.Append(isSuccess ? SaveButtonSuccess() : SaveButtonDefault());
-
                 if (isSuccess) {
-                    btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-                    btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                    btn.classList.remove('from-blue-600', 'to-blue-700', 'border-blue-500');
+                    btn.classList.add('from-green-600', 'to-green-600', 'border-green-500');
                 } else {
-                    btn.classList.remove('bg-green-600', 'hover:bg-green-700');
-                    btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                    btn.classList.add('from-blue-600', 'to-blue-700', 'border-blue-500');
+                    btn.classList.remove('from-green-600', 'to-green-600', 'border-green-500');
                 }
             };
 

@@ -1,3 +1,4 @@
+import { PrimaryButton } from "../shared/widgets.js";
 import { button, div, form, h1, h3, header, input, p, span, main, nav, label, select, option, a, fieldset, RichElement } from "../vanilla-core/viewgencore.js";
 
 export function CustomersPageLayout(mainContent) {
@@ -38,13 +39,7 @@ export function CustomersHeader(events) {
             })
         ),
 
-        button({
-            onclick: events.onOpenNewModal,
-            className: "flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl shadow hover:bg-blue-700 transition duration-200 shrink-0"
-        }).Append(
-            RichElement("i", { dataset: { lucide: "plus" }, className: "w-5 h-5" }),
-            span({ textContent: "Novo Cliente" })
-        )
+        PrimaryButton("addClientButton", "Novo Cliente", "plus", events.onOpenNewModal),
     );
 }
 

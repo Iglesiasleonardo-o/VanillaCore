@@ -1,3 +1,4 @@
+import { PrimaryButton, PrimaryFAB } from "../shared/widgets.js";
 import { div, span, header, main, aside, nav, form, h1, h2, h3, p, button, label, input, textarea, RichElement } from "../vanilla-core/viewgencore.js";
 
 // ==========================================
@@ -12,41 +13,10 @@ export function ProfileHeader(viewModel, events) {
             className: "text-2xl font-bold text-gray-800 shrink-0",
             textContent: "Perfil"
         }),
-        button({
-            id: "saveProfileButton",
-            type: "button",
-            onclick: events.onTriggerSave,
-            className: "flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl shadow hover:bg-blue-700 transition duration-200 shrink-0"
-        }).Append(
-            SaveButtonDefault()
-        )
+        PrimaryButton("saveProfileButton", "Guardar Alterações", "save", events.onTriggerSave)
     );
 }
 
-export function SaveButtonDefault() {
-    return div({ className: "flex items-center gap-2 pointer-events-none" }).Append(
-        RichElement("i", { dataset: { lucide: "save" }, className: "w-5 h-5" }),
-        span({ textContent: "Guardar Alterações" })
-    );
-}
-
-export function SaveButtonSuccess() {
-    return div({ className: "flex items-center gap-2 pointer-events-none" }).Append(
-        RichElement("i", { dataset: { lucide: "check" }, className: "w-5 h-5" }),
-        span({ textContent: "Guardado!" })
-    );
-}
-
-export function SaveFAB(events) {
-    return button({
-        id: "saveProfileFAB",
-        type: "button",
-        onclick: events.onTriggerSave,
-        className: "fixed bottom-8 right-8 flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white font-bold rounded-full shadow-2xl hover:bg-blue-700 hover:scale-105 transition-all duration-200 z-50"
-    }).Append(
-        SaveButtonDefault()
-    );
-}
 
 // ==========================================
 // MAIN & SIDEBAR
@@ -65,7 +35,7 @@ export function ProfileMain(viewModel, events) {
                 )
             )
         ),
-        SaveFAB(events)
+        PrimaryFAB("saveProfileFAB", "Guardar Alterações", "save", events.onTriggerSave)
     );
 }
 
