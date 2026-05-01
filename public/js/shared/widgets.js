@@ -2,9 +2,11 @@ import {
     button,
     div,
     footer,
+    header,
     RichElement,
     span,
 } from "../vanilla-core/viewgencore.js";
+import { deepmerge } from "./deepmerge.js";
 
 export function FAB() {}
 
@@ -25,73 +27,66 @@ export function PrimaryButton(id, text, lucideIcon, onclick) {
 
 export function LazyList(offset, length) {}
 
-export function ConfirmModal(events) {
-    return div({
-        id: "productModal",
+export function ConfirmModal(props = {}) {
+    const defaultProps = {
+        confirmButtonProps: {
+            textContent: "Confirmar",
+            onclick: () => {},
+        },
+        cancelButtonProps: {
+            textContent: "Cancelar",
+            onclick: () => {},
+        },
+        mode: "footer",
+    };
+
+    const mergedProps = deepmerge(defaultProps, props);
+
+    const buttonsContainerComponent =
+        mergedProps.mode === "footer" ? footer : header;
+
+    const mainComponent = div({
         className:
             "fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50",
-        onclick: events.onBackdropClick,
-    }).Append(
-        div({
-            className:
-                "bg-white w-full max-w-4xl h-full max-h-[95vh] rounded-2xl shadow-2xl flex flex-col overflow-auto",
-        }).Append(
-            header({
+        onclick: mergedProps.onclick || function () {},
+        id: mergedProps.id ?? "",
+    });
+
+    const originalAppend = mainComponent.Append;
+
+    function appendOnInnerContent(args) {
+        return originalAppend.bind(
+            mainComponent,
+            div({
                 className:
-                    "p-4 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white z-20",
+                    "bg-white w-full max-w-4xl h-full max-h-[95vh] rounded-2xl shadow-2xl flex flex-col overflow-auto relative",
             }).Append(
-                div({ className: "flex items-center gap-3" }).Append(
+                ...args,
+                buttonsContainerComponent({
+                    className: `p-4 border-gray-200 flex items-center justify-end gap-3 bg-white z-10 sticky w-full ${mergedProps.mode === "footer" ? "border-t top-[100%]" : "border-b top-0"}`,
+                }).Append(
                     button({
-                        id: "saveButtonHeader",
+                        id: "cancelButton",
                         type: "button",
-                        onclick: () =>
-                            document
-                                .getElementById("clientForm")
-                                .requestSubmit(),
                         className:
-                            "px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition duration-200",
-                        textContent: "Guardar Cliente",
+                            "px-5 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg shadow-sm hover:bg-gray-50 transition duration-200",
+                        onclick: mergedProps.onCancel,
+                        ...mergedProps.cancelButtonProps,
                     }),
                     button({
+                        id: "confirButton",
                         type: "button",
-                        onclick: events.onRequestClose,
                         className:
-                            "px-4 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg shadow-sm hover:bg-gray-50 transition duration-200",
-                        textContent: "Cancelar",
-                    })
-                ),
-                button({
-                    type: "button",
-                    onclick: events.onRequestClose,
-                    className:
-                        "text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 p-2 rounded-lg transition-colors",
-                }).Append(
-                    RichElement("i", {
-                        dataset: { lucide: "x" },
-                        className: "w-5 h-5",
+                            "px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition duration-200",
+                        onclick: mergedProps.onConfirm,
+                        ...mergedProps.confirmButtonProps,
                     })
                 )
-            ),
-            footer({
-                className:
-                    "p-4 border-t border-gray-200 flex items-center justify-end gap-3 sticky bottom-0 bg-white z-10",
-            }).Append(
-                button({
-                    id: "cancelButton",
-                    type: "button",
-                    className:
-                        "px-5 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg shadow-sm hover:bg-gray-50 transition duration-200",
-                    onclick: events.onRequestClose,
-                    textContent: "Cancelar",
-                }),
-                button({
-                    id: "saveButton",
-                    type: "submit",
-                    className:
-                        "px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition duration-200",
-                    textContent: "Guardar Produto",
-                })
             )
-        )
-    );
+        )();
+    }
+
+    mainComponent.Append = appendOnInnerContent;
+
+    return mainComponent;
 }

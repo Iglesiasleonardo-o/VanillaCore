@@ -56,8 +56,8 @@ export function setupProductModule() {
 
     return {
         widget: ProductMainWidget(allEvents),
-        // modal: ProductModal(allEvents),
-        modal: ConfirmModal(allEvents),
+        modal: ProductModal(allEvents),
+        // modal: ConfirmModal(allEvents),
         confirmModal: ConfirmExitModal(allEvents),
         executeSearch: gridEvents.executeSearch,
     };

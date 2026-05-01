@@ -24,7 +24,9 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node --env-file-if-exists=.env --watch server.js"
+    "server:watch": "node --env-file-if-exists=.env --watch server.js ",
+    "dev": "concurrently 'npm run server:watch' 'npm run tailwindcss:watch'",
+    "tailwindcss:watch": "npx @tailwindcss/cli -i ./tailwind/input.css -o ./public/css/style.css --watch"
   },
   "dependencies": {
     "express": "^5.2.1",
@@ -32,6 +34,7 @@
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.18",
+    "concurrently": "^9.2.1",
     "tailwindcss": "^4.1.18"
   }
 }
