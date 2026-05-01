@@ -1,9 +1,10 @@
 // import { loadQuotationByURLEvent } from '../quotations/quotation/quotation-events.js';
-import { loadCustomersByURLEvent } from "../customers/customers-render.js"
-import { loadProductsByURLEvent } from "../products/product-render.js"
-import { loadProfileByURL } from "../profile/profile-render.js"
-import { loadQuotationByURLEvent } from "../quotations/quotation/quotation-render.js"
-import { loadQuotationsListByURL } from "../quotations/quotations-render.js"
+import { loadCustomersByURLEvent } from "../customers/customers-render.js";
+import { loadNotFoundPage } from "../not-found/not-found-render.js";
+import { loadProductsByURLEvent } from "../products/product-render.js";
+import { loadProfileByURL } from "../profile/profile-render.js";
+import { loadQuotationByURLEvent } from "../quotations/quotation/quotation-render.js";
+import { loadQuotationsListByURL } from "../quotations/quotations-render.js";
 
 export const routes = {
     "/quotations/:quotationNumber": loadQuotationByURLEvent,
@@ -11,9 +12,9 @@ export const routes = {
     "/products": loadProductsByURLEvent,
     "/profile": loadProfileByURL,
     "/customers": loadCustomersByURLEvent,
-    "/404": () => { alert("404 - Page not found, or still being developed") },
-    "/": () => $("main-wrapper").innerHTML = DefaultView()
-}
+    "/404": loadNotFoundPage,
+    "/": () => ($("main-wrapper").innerHTML = DefaultView()),
+};
 
 function DefaultView() {
     return `

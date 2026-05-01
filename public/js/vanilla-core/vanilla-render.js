@@ -1,4 +1,4 @@
-import { createMainView } from "./vanilla-viewgen.js";
+import { MainView } from "./vanilla-viewgen.js";
 import { matchPathname } from "./vanilla-router.js";
 import { routes } from "./vanilla-routes.js";
 
@@ -21,6 +21,7 @@ function updateUiByPathname(state) {
 }
 
 function onRouteChange(e, route) {
+    console.log("onRouteChange");
     e.preventDefault();
     history.pushState(null, null, `/${route}`);
     updateUiByPathname(e.state);
@@ -29,12 +30,18 @@ function onRouteChange(e, route) {
 
 export function renderInitialView() {
     document.body.textContent = "";
-    document.body.appendChild(createMainView({}, onRouteChange));
+    document.body.appendChild(MainView({}, onRouteChange));
     setInitialRoute();
 }
 
 function setInitialRoute() {
-    setActiveNav(location.pathname.split("/")[1]);
+    console.log(
+        "setInitialRoute",
+        location.pathname,
+        routes[location.pathname]
+    );
+    if (routes[location.pathname])
+        setActiveNav(location.pathname.split("/")[1]);
 }
 
 function setActiveNav(route) {
