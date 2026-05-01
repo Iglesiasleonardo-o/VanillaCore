@@ -4,7 +4,7 @@
 import { routes } from "./vanilla-routes.js";
 import { a, div, nav, RichElement, span } from "./viewgencore.js";
 
-export function createMainView(user, onRouteChange) {
+export function MainView(user, onRouteChange) {
     const routeExists = routes[location.pathname];
     return div({ id: "body-wrapper", className: "bg-gray-100 flex" }).Append(
         routeExists

@@ -4,8 +4,6 @@ import { toClientCardViewModel } from "./customers-viewmodel.js";
 import { CustomersPageLayout, CustomersMainWidget, ClientCard, EmptyStateGrid, ClientModal, ConfirmExitModal, BottomLoader } from "./customers-viewgen.js";
 import { shouldSearch } from "./customers-math.js";
 
-const $ = (id) => document.getElementById(id);
-
 // ==========================================
 // ESTADO DE MÓDULO (Scoped)
 // ==========================================

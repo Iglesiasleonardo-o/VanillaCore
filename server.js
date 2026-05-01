@@ -5,12 +5,11 @@ import app from "./vanilla-core/app.js";
 // No serverOptions needed for HTTP
 const server = createServer(app);
 
-// Standard HTTP port is 80, or 3000 for local dev
-const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || "localhost";
+const PORT = process.env.PORT;
+const HOST = process.env.HOST;
 
 server.listen(PORT, HOST, () => {
     console.log(`Server running at http://${HOST}:${PORT}/`);
 });
 
-// npx @tailwindcss/cli -i ./tailwind/input.css -o ./public/css/style.css --watch
+// npx @tailwindcss/cli -i ./tailwind/input.css -o ./public/css/style.css --minify --watch

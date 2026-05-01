@@ -1,6 +1,6 @@
 import { MongoClient } from "mongodb";
 
-const URI = process.env.DB_URI || "mongodb://127.0.0.1:27017/vanillacore";
+const URI = process.env.DB_URI;
 export const client = new MongoClient(URI);
 await connectToDatabase();
 const database = client.db();
