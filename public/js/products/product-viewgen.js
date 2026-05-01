@@ -261,7 +261,7 @@ export function ProductModal(events) {
             id: "saveButton",
             type: "submit",
             onclick: () => {
-                $("productForm").submit();
+                $("productForm").requestSubmit();
             },
         },
         cancelButtonProps: {
