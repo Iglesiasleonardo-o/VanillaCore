@@ -54,7 +54,7 @@ export function ConfirmModal(props = {}) {
 
     const originalAppend = mainComponent.Append;
 
-    function appendOnInnerContent(args) {
+    function appendOnInnerContent(...args) {
         return originalAppend.bind(
             mainComponent,
             div({

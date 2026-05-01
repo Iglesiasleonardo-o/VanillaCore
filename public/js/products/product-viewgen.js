@@ -255,13 +255,14 @@ export function ConfirmExitModal(events) {
 export function ProductModal(events) {
     return ConfirmModal({
         id: "productModal",
-        className:
-            "fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50",
         onclick: events.onBackdropClick,
         confirmButtonProps: {
             textContent: "Guardar Produto",
             id: "saveButton",
             type: "submit",
+            onclick: () => {
+                $("productForm").submit();
+            },
         },
         cancelButtonProps: {
             id: "cancelButton",
@@ -275,43 +276,8 @@ export function ProductModal(events) {
             className:
                 "bg-white w-full max-w-4xl h-full max-h-[95vh] rounded-2xl shadow-2xl flex flex-col overflow-auto",
         }).Append(
-            // header({
-            //     className:
-            //         "p-4 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white z-10",
-            // }).Append(
-            //     div({ className: "flex items-center gap-3" }).Append(
-            //         button({
-            //             id: "saveButtonHeader",
-            //             type: "submit",
-            //             className:
-            //                 "px-5 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition duration-200",
-            //             textContent: "Guardar Produto",
-            //         }),
-            //         button({
-            //             id: "cancelButtonHeader",
-            //             type: "button",
-            //             className:
-            //                 "px-5 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg shadow-sm hover:bg-gray-50 transition duration-200",
-            //             onclick: events.onRequestClose,
-            //             textContent: "Cancelar",
-            //         })
-            //     ),
-            //     button({
-            //         id: "closeModalButton",
-            //         type: "button",
-            //         className:
-            //             "text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-colors",
-            //         onclick: events.onRequestClose,
-            //     }).Append(
-            //         RichElement("i", {
-            //             dataset: { lucide: "x" },
-            //             className: "w-6 h-6",
-            //         })
-            //     )
-            // ),
-
             div({
-                className: "flex-grow p-6 overflow-y-auto bg-gray-50/30",
+                className: "flex-grow p-6 overflow-y-auto",
             }).Append(
                 ProductTabsNav(events),
                 ProductFormGeneralTab(events),
@@ -319,36 +285,8 @@ export function ProductModal(events) {
                 ProductFormPricingTab(events),
                 ProductFormInventoryTab(events)
             )
-
-            // footer({
-            //     className:
-            //         "p-4 border-t border-gray-200 flex items-center justify-end gap-3 sticky bottom-0 bg-white z-10",
-            // }).Append(
-            //     button({
-            //         id: "cancelButton",
-            //         type: "button",
-            //         className:
-            //             "px-5 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg shadow-sm hover:bg-gray-50 transition duration-200",
-            //         onclick: events.onRequestClose,
-            //         textContent: "Cancelar",
-            //     }),
-            //     button({
-            //         id: "saveButton",
-            //         type: "submit",
-            //         className:
-            //             "px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition duration-200",
-            //         textContent: "Guardar Produto",
-            //     })
-            // )
         )
     );
-    // return div({
-    //     id: "productModal",
-    //     className:
-    //         "fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50",
-    //     onclick: events.onBackdropClick,
-    // }).Append(
-    // );
 }
 
 // ==========================================
