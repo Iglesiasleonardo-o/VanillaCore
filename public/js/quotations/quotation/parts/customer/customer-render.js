@@ -1,5 +1,12 @@
 import { searchCustomersDatabase } from "./customer-network.js";
-import { CustomerSection, CustomerModal, EmptyState, DetailsContent, SearchItem, CloseDropdownItem } from "./customer-viewgen.js";
+import {
+    CustomerSection,
+    CustomerModal,
+    EmptyState,
+    DetailsContent,
+    SearchItem,
+    CloseDropdownItem,
+} from "./customer-viewgen.js";
 import { shouldSearch } from "./customer-math.js";
 import { createCustomerViewModel } from "./customer-viewmodel.js";
 
@@ -40,7 +47,7 @@ const readModalInputs = () => {
         nuit: $("input-customer-nuit").value.trim(),
         phone: $("input-customer-phone").value.trim(),
         address: $("input-customer-address").value.trim(),
-        isEntity: $("toggleIsEntity").checked
+        isEntity: $("toggleIsEntity").checked,
     };
 };
 
@@ -56,7 +63,9 @@ const closeModalUI = () => {
 
 const handleSearch = async (value, type) => {
     const resultsContainer = $(`customer-results-${type}`);
-    const loadingSpinner = $(type === "name" ? "customer-loading-name" : "loading-nuit");
+    const loadingSpinner = $(
+        type === "name" ? "customer-loading-name" : "loading-nuit"
+    );
 
     if (!shouldSearch(value)) {
         resultsContainer.classList.add("hidden");
@@ -72,16 +81,20 @@ const handleSearch = async (value, type) => {
     if (results && results.length > 0) {
         resultsContainer.classList.remove("hidden");
 
-        results.forEach(customer => {
-            resultsContainer.appendChild(SearchItem(customer, (selected) => {
-                setModalInputs(selected);
-                resultsContainer.classList.add("hidden");
-            }));
+        results.forEach((customer) => {
+            resultsContainer.appendChild(
+                SearchItem(customer, (selected) => {
+                    setModalInputs(selected);
+                    resultsContainer.classList.add("hidden");
+                })
+            );
         });
 
-        resultsContainer.appendChild(CloseDropdownItem(() => {
-            resultsContainer.classList.add("hidden");
-        }));
+        resultsContainer.appendChild(
+            CloseDropdownItem(() => {
+                resultsContainer.classList.add("hidden");
+            })
+        );
     } else {
         resultsContainer.classList.add("hidden");
     }
@@ -104,14 +117,15 @@ const setupCustomerSectionEvents = (quotation) => {
             quotation.customer = {};
 
             // 2. Directly update the UI with hardcoded defaults
-            $("customer-search-input").placeholder = "-- Clique para selecionar ou criar cliente --";
+            $("customer-search-input").placeholder =
+                "-- Clique para selecionar ou criar cliente --";
             $("customer-details-container").replaceChildren(EmptyState());
 
             // 3. Wipe draft inputs
             setModalInputs({});
-        }
-    }
-}
+        },
+    };
+};
 
 const setupCustomerModalEvents = (quotation) => {
     return {
@@ -123,11 +137,14 @@ const setupCustomerModalEvents = (quotation) => {
             checkbox.checked = !checkbox.checked;
 
             $("input-customer-nuit").required = checkbox.checked;
-            $("label-nuit-required").classList.toggle("hidden", !checkbox.checked);
+            $("label-nuit-required").classList.toggle(
+                "hidden",
+                !checkbox.checked
+            );
         },
 
-        onPhoneInput: () => { },
-        onAddrInput: () => { },
+        onPhoneInput: () => {},
+        onAddrInput: () => {},
 
         onCancelModal: () => {
             setModalInputs(quotation.customer);
@@ -141,11 +158,14 @@ const setupCustomerModalEvents = (quotation) => {
             quotation.customer = readModalInputs();
 
             // 2. Sync the UI directly using the raw data
-            $("customer-details-container").replaceChildren(DetailsContent(quotation.customer));
-            $("customer-clear-btn").classList.remove('hidden');
-            $("customer-search-input").placeholder = `Selecionado: ${quotation.customer.name}`;
+            $("customer-details-container").replaceChildren(
+                DetailsContent(quotation.customer)
+            );
+            $("customer-clear-btn").classList.remove("hidden");
+            $("customer-search-input").placeholder =
+                `Selecionado: ${quotation.customer.name}`;
 
             closeModalUI();
-        }
-    }
-}
+        },
+    };
+};

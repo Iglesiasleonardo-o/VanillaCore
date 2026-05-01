@@ -1,6 +1,6 @@
 export async function sessionMiddleware(req, res, next) {
     const cookieHeader = req.headers.cookie;
-    const isAjax = req.headers.accept === '*/*';
+    const isAjax = req.headers.accept === "*/*";
 
     // validate refresh and access tokens here with redis, or something similar
 
@@ -22,7 +22,6 @@ function buildEntryHTML(data) {
     <title>VanillaCore</title>
     <link rel="stylesheet" href="/public/css/style.css">
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
         /* CSS stays in head for instant paint */
@@ -70,5 +69,5 @@ function buildEntryHTML(data) {
     <script>const $ = (elementId) => document.getElementById(elementId);</script>
     <script type="module" src="/public/js/vanilla-core/vanilla-render.js"></script>
 </body>
-`
+`;
 }
