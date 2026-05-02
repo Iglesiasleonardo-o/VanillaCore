@@ -1,4 +1,4 @@
-import { Input } from "../shared/components/input.js";
+import { PrimaryStringInput } from "../shared/components/primary-string-input.js";
 import { PrimaryButton } from "../shared/widgets.js";
 import {
     button,
@@ -365,18 +365,14 @@ function ProductFormGeneralTab(events) {
     return div({ id: "tab-general", className: "tab-panel space-y-8" }).Append(
         // Categoria, SKU e EAN
         div({ className: "grid grid-cols-1 md:grid-cols-3 gap-6" }).Append(
-            Input({ label: "Categoria", id: "category", name: "category" }),
-            Input({
-                label: "Referência (SKU)",
-                id: "reference",
-                name: "reference",
-                required: true,
-            }),
-            Input({
-                label: "Código de Barras (EAN)",
-                id: "barcode",
-                name: "barcode",
-            })
+            PrimaryStringInput("category", "Categoria"),
+            PrimaryStringInput(
+                "reference",
+                "Referência (SKU)",
+                undefined,
+                true
+            ),
+            PrimaryStringInput("barcode", "Código de Barras (EAN)")
         ),
 
         hr({ className: "border-gray-200" }),
@@ -421,12 +417,12 @@ function ProductFormGeneralTab(events) {
                 )
             ),
             div({ className: "md:col-span-2 space-y-6" }).Append(
-                Input({
-                    label: "Nome do Produto",
-                    id: "productName",
-                    name: "productName",
-                    required: true,
-                }),
+                PrimaryStringInput(
+                    "productName",
+                    "Nome do Produto",
+                    undefined,
+                    true
+                ),
                 div().Append(
                     label({
                         htmlFor: "productDescription",
@@ -603,12 +599,10 @@ function ProductFormGeneralTab(events) {
                     id: "quantity-container",
                     className: "transition-all duration-300",
                 }).Append(
-                    Input({
-                        label: "Quantidade Atual Em Mão",
-                        id: "quantityOnHand",
-                        name: "quantityOnHand",
-                        type: "number",
-                    })
+                    PrimaryStringInput(
+                        "quantityOnHand",
+                        "Quantidade Atual Em Mão"
+                    )
                 )
             ),
             div({ className: "space-y-4" }).Append(
