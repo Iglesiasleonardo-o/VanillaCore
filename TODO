@@ -1,12 +1,20 @@
-<!-- COMPONENTS -->
+<!-- Widgets -->
 * Modal com animações e close de /customers com botões acima e abaixo como /products, rounded-2xl
 * Botões em geral devem ter xl. PrimaryButton, ClearButton
 * Input como /profile mas com focus:border-blue-300
 * Input para string (minLength, maxLength) e para números (min, max)
 * Input opcional e obrigatório
 * Carregar imagem como /profile
-* Todos estes podem ter properties próprios através de objectos {} e spread ...
 * Toolbar genérico, ListToolbar (Search no meio), 
 * Tabs de formularios
 * LazyList, parametros (length e offset), funciona em qualquer espaço, deve ter loading inicial, loading debaixo, recebe qualquer cartão ou lista vertical
-* Loading ao sair de uma página para outra se o request ultrapassar o tempo aceitável pelas pessoas
+
+<!-- Non functional requirements -->
+* Remove lucide completelly, use Icon class only, define icons in icons.js by calling Icon from viewgencore
+* Loading ao sair de uma página para outra, se o request ultrapassar o tempo aceitável pelas pessoas (200ms)
+
+<!-- Funcional requirements -->
+* Start backend, probably from /profile
+* Then /products
+* Then /quotations/1-21 or something similar
+* Then /quotations

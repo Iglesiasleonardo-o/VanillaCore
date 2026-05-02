@@ -16,7 +16,7 @@ onpopstate = function (e) {
     setInitialRoute();
 };
 
-function updateUiByPathname(state) {
+export function updateUiByPathname(state) {
     routes[matchPathname(routes)](state);
 }
 
@@ -48,7 +48,7 @@ function setActiveNav(route) {
     document
         .querySelector("nav a.bg-blue-600")
         ?.classList.remove("text-white", "bg-blue-600", "shadow-lg");
-    $(`${route}-nav`).classList.add("text-white", "bg-blue-600", "shadow-lg");
+    $(`${route}-nav`)?.classList.add("text-white", "bg-blue-600", "shadow-lg");
 }
 
 export function RenderView() {

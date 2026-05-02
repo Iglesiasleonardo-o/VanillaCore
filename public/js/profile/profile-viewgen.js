@@ -103,6 +103,7 @@ function CompanyTab(viewModel, events) {
                             div().Append(
                                 label({ htmlFor: "input-company-name", className: labelClass, textContent: "Nome da Empresa" }),
                                 input({ id: "input-company-name", type: "text", name: "companyName", value: viewModel.companyName, placeholder: "O nome legal da empresa", className: inputClass })
+                                
                             ),
                             div().Append(
                                 label({ htmlFor: "input-company-nuit", className: labelClass, textContent: "NUIT" }),
