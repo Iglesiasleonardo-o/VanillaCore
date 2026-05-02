@@ -9,6 +9,12 @@
 * Tabs de formularios
 * LazyList, parametros (length e offset), funciona em qualquer espaço, deve ter loading inicial, loading debaixo, recebe qualquer cartão ou lista vertical
 
-<!-- Non functional -->
+<!-- Non functional requirements -->
 * Remove lucide completelly, use Icon class only, define icons in icons.js by calling Icon from viewgencore
 * Loading ao sair de uma página para outra, se o request ultrapassar o tempo aceitável pelas pessoas (200ms)
+
+<!-- Funcional requirements -->
+* Start backend, probably from /profile
+* Then /products
+* Then /quotations/1-21 or something similar
+* Then /quotations
