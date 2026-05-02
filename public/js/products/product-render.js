@@ -58,26 +58,26 @@ const resetModalUI = () => {
     $("productForm").reset();
     $("productForm").removeAttribute("data-product-id");
     $("productForm").removeAttribute("data-dirty");
-    
+
     if (modalEventsRef.onSwitchTab) modalEventsRef.onSwitchTab("general");
 };
 
 const setModalInputs = (product) => {
     const form = $("productForm");
-    
+
     form.setAttribute("data-product-id", product ? product.id : "");
     form.elements["productName"].value = product ? product.name : "";
     form.elements["salesPrice"].value = product ? (product.price || product.unitPrice || "") : "";
     form.elements["costPrice"].value = product ? (product.cost || "") : "";
     form.elements["reference"].value = product ? (product.ref || "") : "";
-    
+
     const prodType = product ? (product.productType || product.type || 'mercadoria') : 'mercadoria';
-    
+
     if (prodType === 'servico') $("type-servico").checked = true;
     else if (prodType === 'combo') $("type-combo").checked = true;
     else $("type-mercadoria").checked = true;
 
-    const isTracking = product ? (product.trackInventory !== false) : true; 
+    const isTracking = product ? (product.trackInventory !== false) : true;
     const onHandValue = product ? (product.onHand || "") : "";
 
     $("quantityOnHand").value = onHandValue;
@@ -90,9 +90,9 @@ const setModalInputs = (product) => {
     } else {
         $("trackInventory").disabled = false;
         $("inventory-tracking-container").classList.remove('opacity-50');
-        
+
         $("trackInventory").checked = isTracking;
-        
+
         if (isTracking) {
             $("quantity-container").classList.remove('hidden');
         } else {
@@ -131,7 +131,7 @@ function setupGridEvents(modalEvents) {
             if (newResults.length > 0) {
                 // Adiciona os novos resultados à array local na mesma ordem
                 localProducts.push(...newResults);
-                
+
                 currentCursor = newResults[newResults.length - 1].name;
                 renderGridItems(newResults, container);
             }
@@ -151,7 +151,7 @@ function setupGridEvents(modalEvents) {
 
         if (gridObserver) gridObserver.disconnect();
 
-        $("productGrid").textContent = ""; 
+        $("productGrid").textContent = "";
         $("gridLoadingIndicator").classList.remove("hidden");
 
         const results = await loadProductsData(currentSearchQuery, currentCursor);
@@ -165,7 +165,7 @@ function setupGridEvents(modalEvents) {
 
         // Preenche a memória local com a primeira página
         localProducts = [...results];
-        
+
         currentCursor = results[results.length - 1].name;
         renderGridItems(results, $("productGrid"));
 
@@ -195,25 +195,26 @@ let modalEventsRef = {};
 // MÓDULO: MODAL & FORMULÁRIO
 // ==========================================
 function setupModalEvents() {
-
     const openModal = (product = null) => {
         resetModalUI();
         if (product) setModalInputs(product);
         else setModalInputs(null);
-        
-        $("productModal").classList.remove("hidden");
+
+        $("productModal").classList.remove("hidden", "opacity-0");
     };
 
     const closeModal = () => {
         $("productModal").classList.add("hidden");
-        $("confirmExitModal").classList.add("hidden");
+        $("confirmExitModal").classList.add("opacity-0");
+        setTimeout(() => $("confirmExitModal").classList.add("hidden"), 200);
         resetModalUI();
     };
 
     const requestCloseModal = () => {
         const isDirty = $("productForm").getAttribute("data-dirty") === "true";
         if (isDirty) {
-            $("confirmExitModal").classList.remove("hidden");
+            $("confirmExitModal").classList.remove("opacity-0");
+            setTimeout(() => $("confirmExitModal").classList.add("hidden"), 200);
         } else {
             closeModal();
         }
@@ -232,7 +233,10 @@ function setupModalEvents() {
             const product = localProducts.find(p => p.id === id);
             openModal(product);
         },
-        onCancelExit: () => $("confirmExitModal").classList.add("hidden"),
+        onCancelExit: () => {
+            $("confirmExitModal").classList.add("opacity-0");
+            setTimeout(() => $("confirmExitModal").classList.add("hidden"), 200);
+        },
         onConfirmExit: () => closeModal(),
 
         onFormInput: () => {
@@ -242,7 +246,7 @@ function setupModalEvents() {
         onSaveModal: async (e) => {
             e.preventDefault();
 
-            const form = e.target;
+            const form = $("productForm");
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
             const pId = form.getAttribute("data-product-id");

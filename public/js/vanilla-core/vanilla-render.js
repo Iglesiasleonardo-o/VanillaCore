@@ -16,7 +16,7 @@ onpopstate = function (e) {
     setInitialRoute();
 }
 
-function updateUiByPathname(state) {
+export function updateUiByPathname(state) {
     routes[matchPathname(routes)](state);
 }
 

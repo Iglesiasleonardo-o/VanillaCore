@@ -1,4 +1,4 @@
-import { PrimaryButton } from "../shared/widgets.js";
+import { FormModal, PrimaryButton } from "../shared/widgets.js";
 import {
     button, div, form, h1, h2, h3, header, img, input, p, span,
     main, nav, footer, label, textarea, fieldset, hr, select, option, RichElement
@@ -133,34 +133,14 @@ export function ConfirmExitModal(events) {
 }
 
 export function ProductModal(events) {
-    return div({ id: "productModal", className: "fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50", onclick: events.onBackdropClick }).Append(
-
-        form({ id: "productForm", onsubmit: events.onSaveModal, oninput: events.onFormInput, className: "bg-white w-full max-w-4xl h-full max-h-[95vh] rounded-2xl shadow-2xl flex flex-col overflow-auto" }).Append(
-
-            header({ className: "p-4 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white z-10" }).Append(
-                div({ className: "flex items-center gap-3" }).Append(
-                    button({ id: "saveButtonHeader", type: "submit", className: "px-5 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition duration-200", textContent: "Guardar Produto" }),
-                    button({ id: "cancelButtonHeader", type: "button", className: "px-5 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg shadow-sm hover:bg-gray-50 transition duration-200", onclick: events.onRequestClose, textContent: "Cancelar" })
-                ),
-                button({ id: "closeModalButton", type: "button", className: "text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-colors", onclick: events.onRequestClose }).Append(
-                    RichElement("i", { dataset: { lucide: "x" }, className: "w-6 h-6" })
-                )
-            ),
-
-            div({ className: "flex-grow p-6 overflow-y-auto bg-gray-50/30" }).Append(
-                ProductTabsNav(events),
-                ProductFormGeneralTab(events),
-                ProductFormVariantsTab(events),
-                ProductFormPricingTab(events),
-                ProductFormInventoryTab(events)
-            ),
-
-            footer({ className: "p-4 border-t border-gray-200 flex items-center justify-end gap-3 sticky bottom-0 bg-white z-10" }).Append(
-                button({ id: "cancelButton", type: "button", className: "px-5 py-2.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg shadow-sm hover:bg-gray-50 transition duration-200", onclick: events.onRequestClose, textContent: "Cancelar" }),
-                button({ id: "saveButton", type: "submit", className: "px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition duration-200", textContent: "Guardar Produto" })
-            )
-        )
+    const formContent = div().Append(
+        ProductTabsNav(events),
+        ProductFormGeneralTab(events),
+        ProductFormVariantsTab(events),
+        ProductFormPricingTab(events),
+        ProductFormInventoryTab(events)
     );
+    return FormModal("product", "Guardar Produto", formContent, events);
 }
 
 // ==========================================
@@ -168,7 +148,7 @@ export function ProductModal(events) {
 // ==========================================
 
 function ProductTabsNav(events) {
-    const createTab = (id, label, active = false) => {
+    const Tab = (id, label, active = false) => {
         return RichElement("button", {
             type: "button",
             dataset: { tab: id },
@@ -180,10 +160,10 @@ function ProductTabsNav(events) {
 
     return div({ className: "border-b border-gray-200 mb-6" }).Append(
         RichElement("nav", { className: "-mb-px flex space-x-6" }).Append(
-            createTab("general", "Informação Geral", true),
-            createTab("variants", "Atributos e Variantes"),
-            createTab("pricing", "Preços por Quantidade"),
-            createTab("inventory", "Inventário")
+            Tab("general", "Informação Geral", true),
+            Tab("variants", "Atributos e Variantes"),
+            Tab("pricing", "Preços por Quantidade"),
+            Tab("inventory", "Inventário")
         )
     );
 }
