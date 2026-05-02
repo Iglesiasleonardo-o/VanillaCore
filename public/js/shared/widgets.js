@@ -30,6 +30,10 @@ export function PrimaryButton(id, text, lucideIcon, onclick) {
     )
 }
 
+export function PrimaryModal() {
+    
+}
+
 export function LazyList(offset, length) {
 
 }
