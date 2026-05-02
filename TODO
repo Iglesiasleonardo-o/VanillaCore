@@ -9,4 +9,5 @@
 * Toolbar genérico, ListToolbar (Search no meio), 
 * Tabs de formularios
 * LazyList, parametros (length e offset), funciona em qualquer espaço, deve ter loading inicial, loading debaixo, recebe qualquer cartão ou lista vertical
+
 * Loading ao sair de uma página para outra se o request ultrapassar o tempo aceitável pelas pessoas
