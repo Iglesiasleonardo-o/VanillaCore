@@ -21,7 +21,6 @@ function updateUiByPathname(state) {
 }
 
 function onRouteChange(e, route) {
-    console.log("onRouteChange");
     e.preventDefault();
     history.pushState(null, null, `/${route}`);
     updateUiByPathname(e.state);
@@ -35,11 +34,6 @@ export function renderInitialView() {
 }
 
 function setInitialRoute() {
-    console.log(
-        "setInitialRoute",
-        location.pathname,
-        routes[location.pathname]
-    );
     if (routes[location.pathname])
         setActiveNav(location.pathname.split("/")[1]);
 }
