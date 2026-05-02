@@ -1,4 +1,3 @@
-import { loadDasboardByURLEvent } from "../dashboard/dashboard-render.js";
 import { renderInitialView, RenderView, updateUiByPathname } from "../vanilla-core/vanilla-render.js";
 import { NotFoundView } from "./not-found-viewgen.js";
 
