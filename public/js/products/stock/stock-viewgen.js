@@ -33,7 +33,7 @@ export function LoadingState() {
             }),
             p({
                 className: "text-lg text-gray-600 font-medium",
-                textContent: "A carregar stock...",
+                textContent: "A carregar estoque...",
             })
         )
     );
